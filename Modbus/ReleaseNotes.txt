@@ -1,0 +1,83 @@
+﻿Free .NET Modbus Library - Release Notes
+========================================
+
+v1.0.2.0
+--------
+
+- Fixed a bug in ModbusTCPSlave connectionsand ModbusTCPMaster (thnaks to: ynoser #issue8)
+- Fixed issue with "Environment.TickCount" (thanks to: gbisheimer@bys-control.com.ar #issue9).
+
+v1.0.1.0
+--------
+
+- Fixed a bug with functions that exchange multiple holding registers.
+
+v1.0.0.0 (final)
+----------------
+
+- Fixed a bug on message timeout (thanks to Alexandre Rosa)
+- Added a control on char timeout in Modbus-RTU connections that cause issues on lower baudrates (thanks to Alexandre Rosa)
+
+NOTE: This is the final version, but not the last!! The project will continue with bug fixes and any type of suggestion!!!
+
+v0.0.9.0 (rc3)
+----------------
+
+- Fixed a bug that causes lot of CPU utilization awaiting modbus messages in Modbus Serial Slave (RTU and ASCII) mode (thanks to william.dipanfilo).
+
+v0.0.8.0 (rc2)
+----------------
+
+- Fixed a bug in modbus serial inter-frame delay when baudrates is below 19200
+- Fixed a bug that cause exception when close Socket Listener with open clients
+
+v0.0.7.0 (rc1)
+----------------
+
+- Corrected a bug that cause hang in Modbus TCP Slave loop.
+
+v0.0.6.0 (beta)
+---------------
+
+- Corrected major bug that cause hang and raise an "OutOfRange" exception in presence of modbus exception from remote slave device
+- Corrected minor bug that prevent exception again wrong messages length
+- Added full support for exceptions in master and slave mode
+
+v0.0.5.0 (beta)
+---------------
+
+- Insert a control against modbus RTU frame with wrong length
+- Translated 'ModbusMaster' class, other translation in progress...
+
+
+v0.0.4.0 (beta)
+---------------
+
+- Now in beta version...major bugs removed!
+- Start translation in english (Enumerations and class 'ModbusBase')
+- Added some example in Test program...others will be added soon!
+
+
+v0.0.3.0 (alpha)
+----------------
+
+- Correct a bug on reconnection when using Modbus TCP Master
+- Added control for quantity of registers requested in modbus transactions based on MODBUS APPLICATION PROTOCOL SPECIFICATION V1.1b
+
+
+v0.0.2.0 (alpha)
+----------------
+
+- Added support for Modbus UDP
+- Some bug fixes
+
+
+
+v0.0.1.0 (alpha)
+----------------
+
+- First release version.
+  (For features view ReadMe.txt)
+
+
+
