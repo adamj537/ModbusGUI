@@ -73,7 +73,7 @@ namespace Test
 
 				// Do something (what?) to coil 15.
 				bool coil15 = ms.ModbusDB.Single(x => x.UnitID == unit_id).Coils[15];
-				
+
 				// Print the output to the console.
 				Console.WriteLine("Coil register    n.16 : " + coil15.ToString());
 
@@ -160,9 +160,9 @@ namespace Test
 		static void Main(string[] args)
 		{
 			// Enter test code here...
-			
+
 			// Some default tests...uncomment to use.
-			
+
 			Test_ModbusRTUMaster();
 			//Test_ModbusRTUSlave();
 		}
