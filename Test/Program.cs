@@ -27,7 +27,7 @@ namespace Test
 			ModbusSlaveSerial ms = new ModbusSlaveSerial(new Datastore[] { ds }, ModbusSerialType.RTU, "COM1", 9600, 8, Parity.Even, StopBits.One, Handshake.None);
 
 			// Start listening.
-			ms.StartListen();
+			ms.StartListening();
 
 			// Generate a random number (used in the test).
 			Random rnd = new Random();
@@ -39,19 +39,19 @@ namespace Test
 				Console.WriteLine("---------------------- READING ----------------------");
 
 				// Create MODBUS holding register 1.
-				ushort holdingReg1 = ms.ModbusDB.Single(x => x.UnitID == unit_id).HoldingRegisters[0];
+				ushort holdingReg1 = ms.ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[0];
 
 				// Print the output to the console.
 				Console.WriteLine("Holding register n.1  : " + holdingReg1.ToString("D5"));
 
 				// Create MODBUS holding register 60.
-				ushort holdingReg60 = ms.ModbusDB.Single(x => x.UnitID == unit_id).HoldingRegisters[59];
+				ushort holdingReg60 = ms.ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[59];
 
 				// Print the output to the console.
 				Console.WriteLine("Holding register n.60 : " + holdingReg60.ToString("D5"));
 
 				// Create MODBUS coil 32.
-				bool coil32 = ms.ModbusDB.Single(x => x.UnitID == unit_id).Coils[31];
+				bool coil32 = ms.ModbusDatabase.Single(x => x.UnitID == unit_id).Coils[31];
 
 				// Print the output to the console.
 				Console.WriteLine("Coil register    n.32 : " + coil32.ToString());
@@ -60,19 +60,19 @@ namespace Test
 				Console.WriteLine("---------------------- WRITING ----------------------");
 
 				// Do something (what?) to holding register 2.
-				ms.ModbusDB.Single(x => x.UnitID == unit_id).HoldingRegisters[1] = (ushort)rnd.Next(ushort.MinValue, ushort.MaxValue);
+				ms.ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[1] = (ushort)rnd.Next(ushort.MinValue, ushort.MaxValue);
 
 				// Do something (what?) to holding register 2.
-				ushort holdingReg2 = ms.ModbusDB.Single(x => x.UnitID == unit_id).HoldingRegisters[1];
+				ushort holdingReg2 = ms.ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[1];
 
 				// Print the output to the console.
 				Console.WriteLine("Holding register n.2  : " + holdingReg2.ToString("D5"));
 
 				// Do something (what?) to coil 15.
-				ms.ModbusDB.Single(x => x.UnitID == unit_id).Coils[15] = Convert.ToBoolean(rnd.Next(0, 1));
+				ms.ModbusDatabase.Single(x => x.UnitID == unit_id).Coils[15] = Convert.ToBoolean(rnd.Next(0, 1));
 
 				// Do something (what?) to coil 15.
-				bool coil15 = ms.ModbusDB.Single(x => x.UnitID == unit_id).Coils[15];
+				bool coil15 = ms.ModbusDatabase.Single(x => x.UnitID == unit_id).Coils[15];
 
 				// Print the output to the console.
 				Console.WriteLine("Coil register    n.16 : " + coil15.ToString());

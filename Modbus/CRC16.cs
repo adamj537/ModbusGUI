@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Modbus
+﻿namespace Modbus
 {
 	/// <summary>
 	/// Static class for CRC16 compute
@@ -13,17 +8,17 @@ namespace Modbus
 		/// <summary>
 		/// base poly
 		/// </summary>
-		const ushort POLY = 0xA001;
+		private const ushort POLY = 0xA001;
 
 		/// <summary>
 		/// CRC table
 		/// </summary>
-		static ushort[] crc_tab16;
+		private static ushort[] crc_tab16;
 
 		/// <summary>
 		/// Initialize CRC table
 		/// </summary>
-		static void InitCRC16Tab()
+		private static void InitCRC16Tab()
 		{
 			ushort crc, c;
 
@@ -56,11 +51,11 @@ namespace Modbus
 		/// <param name="crc">Actual CRC value</param>
 		/// <param name="bt">Data byte</param>
 		/// <returns>Computed CRC</returns>
-		static ushort UpdateCRC16(ushort crc, byte bt)
+		private static ushort UpdateCRC16(ushort crc, byte bt)
 		{
 			ushort tmp, ushort_bt;
 
-			ushort_bt = (ushort)(0x00FF & (ushort)bt);
+			ushort_bt = (ushort)(0x00FF & bt);
 
 			InitCRC16Tab();
 

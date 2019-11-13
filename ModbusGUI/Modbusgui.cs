@@ -794,7 +794,7 @@ namespace ModbusGUI
 				case DataType.String:
 					try
 					{
-						dataString = ASCIIEncoding.ASCII.GetString(raw.ToArray());
+						dataString = Encoding.ASCII.GetString(raw.ToArray());
 					}
 					catch (Exception)
 					{
@@ -867,14 +867,14 @@ namespace ModbusGUI
 					break;
 				case DataType.String:
 					{
-						byte[] strBytes = ASCIIEncoding.ASCII.GetBytes(str);
+						byte[] strBytes = Encoding.ASCII.GetBytes(str);
 						int j = 0;
 						// Copy the string data into the registers
 						for (int i = 0; i < numRegs; i++)
 						{
 							if (j < strBytes.Length)
 							{
-								regs[i] = (ushort)((ushort)strBytes[j] << 8);
+								regs[i] = (ushort)(strBytes[j] << 8);
 								j++;
 							}
 							else

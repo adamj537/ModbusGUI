@@ -28,39 +28,19 @@ namespace Modbus
 	/// </summary>
 	public sealed class ModbusTCPUDPClientConnectedEventArgs : EventArgs
 	{
-		#region Global Variables
-
-		/// <summary>
-		/// Remote endpoint
-		/// </summary>
-		IPEndPoint remote_ep;
-
-		#endregion
-
-		#region Parameters
-
 		/// <summary>
 		/// Remote EndPoint
 		/// </summary>
-		public IPEndPoint RemoteEndPoint
-		{
-			get { return remote_ep; }
-		}
-
-		#endregion
-
-		#region Constructor
+		public IPEndPoint RemoteEndPoint { get; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="remote_ep">Remote EndPoint</param>
-		public ModbusTCPUDPClientConnectedEventArgs(IPEndPoint remote_ep)
+		/// <param name="remoteEndPoint">Remote EndPoint</param>
+		public ModbusTCPUDPClientConnectedEventArgs(IPEndPoint remoteEndPoint)
 		{
-			this.remote_ep = remote_ep;
+			RemoteEndPoint = remoteEndPoint;
 		}
-
-		#endregion
 	}
 
 	#endregion
@@ -282,62 +262,45 @@ namespace Modbus
 
 		#endregion
 
-		#region Global variables
+		#region Fields
 
 		/// <summary>
 		/// Connection type
 		/// </summary>
-		protected ConnectionType connection_type;
+		protected ConnectionType _connectionType;
 
 		/// <summary>
 		/// Device type
 		/// </summary>
-		protected DeviceType device_type;
-
-		/// <summary>
-		/// Reception timeout (milliseconds)
-		/// </summary>
-		protected int rx_timeout = DEFAULT_RX_TIMEOUT;
-
-		/// <summary>
-		/// Modbus errors
-		/// </summary>
-		protected Errors error;
+		protected DeviceType _deviceType;
 
 		/// <summary>
 		/// Delay between two Modbus serial RTU frame (milliseconds)
 		/// </summary>
-		protected int interframe_delay;
+		protected int _interframeDelay;
 
 		/// <summary>
 		/// Delay between two Modbus serial RTU characters (milliseconds)
 		/// </summary>
-		protected int interchar_delay;
+		protected int _intercharDelay;
 
 		#endregion
 
-		#region Parameters
+		#region Properties
 
 		/// <summary>
-		/// Get or set reception timeout (milliseconds)
+		/// Reception timeout (milliseconds)
 		/// </summary>
-		public int RxTimeout
-		{
-			get { return rx_timeout; }
-			set { rx_timeout = value; }
-		}
+		public int RxTimeout { get; set; } = DEFAULT_RX_TIMEOUT;
 
 		/// <summary>
-		/// Get last error code
+		/// Error code
 		/// </summary>
-		public Errors Error
-		{
-			get { return error; }
-		}
+		public Errors Error { get; set; }
 
 		#endregion
 
-		#region Utility functions
+		#region Helper Methods
 
 		/// <summary>
 		/// Return an array of bytes from an unsigned 16 bit integer using BIG ENDIAN codification
@@ -367,10 +330,10 @@ namespace Modbus
 		protected byte[] GetASCIIBytesFromBinaryBuffer(byte[] buffer)
 		{
 			List<char> chars = new List<char>();
-			for (int ii = 0, jj = 0; ii < buffer.Length * 2; ii++)
+			for (int i = 0, j = 0; i < buffer.Length * 2; i++)
 			{
 				char ch;
-				byte val = (byte)((ii % 2) == 0 ? buffer[jj] >> 4 : buffer[jj] & 0x0F);
+				byte val = (byte)((i % 2) == 0 ? buffer[j] >> 4 : buffer[j] & 0x0F);
 				switch (val)
 				{
 					default:
@@ -392,8 +355,10 @@ namespace Modbus
 					case 0x0F: ch = 'F'; break;
 				}
 				chars.Add(ch);
-				if ((ii % 2) != 0)
-					jj++;
+				if ((i % 2) != 0)
+				{
+					j++;
+				}
 			}
 
 			return Encoding.ASCII.GetBytes(chars.ToArray());
@@ -414,10 +379,10 @@ namespace Modbus
 			List<byte> ret = new List<byte>();
 			char[] chars = Encoding.ASCII.GetChars(buffer);
 			byte bt = 0;
-			for (int ii = 0; ii < buffer.Length; ii++)
+			for (int i = 0; i < buffer.Length; i++)
 			{
 				byte tmp;
-				switch (chars[ii])
+				switch (chars[i])
 				{
 					default:
 					case '0': tmp = 0x00; break;
@@ -437,7 +402,7 @@ namespace Modbus
 					case 'E': tmp = 0x0E; break;
 					case 'F': tmp = 0x0F; break;
 				}
-				if (ii % 2 != 0)
+				if (i % 2 != 0)
 				{
 					bt |= tmp;
 					ret.Add(bt);
@@ -469,7 +434,7 @@ namespace Modbus
 		protected byte EightBitToByte(bool[] array, int offset)
 		{
 			if (array.Length < 8)
-				throw new Exception(MethodInfo.GetCurrentMethod().Name + ": The array must be at least 8-bit length!");
+				throw new Exception(MethodBase.GetCurrentMethod().Name + ": The array must be at least 8-bit length!");
 			byte ret = 0x00;
 			for (int ii = 0; ii < 8; ii++)
 			{
@@ -489,24 +454,24 @@ namespace Modbus
 
 		#endregion
 
-		#region Protocol functions
+		#region Protocol Methods
 
 		/// <summary>
 		/// Get delay time between two modbus RTU frame in milliseconds
 		/// </summary>
-		/// <param name="sp">Serial Port</param>
+		/// <param name="serialPort">Serial Port</param>
 		/// <returns>Calculated delay (milliseconds)</returns>
-		protected int GetInterframeDelay(SerialPort sp)
+		protected int GetInterframeDelay(SerialPort serialPort)
 		{
-			int ret_val;
+			int delay;
 
-			if (sp.BaudRate > 19200)
-				ret_val = 2;   // Fixed value = 1.75ms up rounded
+			if (serialPort.BaudRate > 19200)
+				delay = 2;   // Fixed value = 1.75ms up rounded
 			else
 			{
-				int nbits = 1 + sp.DataBits;
-				nbits += sp.Parity == Parity.None ? 0 : 1;
-				switch (sp.StopBits)
+				int nbits = 1 + serialPort.DataBits;
+				nbits += serialPort.Parity == Parity.None ? 0 : 1;
+				switch (serialPort.StopBits)
 				{
 					case StopBits.One:
 						nbits += 1;
@@ -517,28 +482,28 @@ namespace Modbus
 						nbits += 2;
 						break;
 				}
-				ret_val = Convert.ToInt32(Math.Ceiling(1 / (((double)sp.BaudRate / ((double)nbits * 3.5d)) / 1000)));
+				delay = Convert.ToInt32(Math.Ceiling(1 / ((serialPort.BaudRate / (nbits * 3.5d)) / 1000)));
 			}
 
-			return ret_val;
+			return delay;
 		}
 
 		/// <summary>
 		/// Get max delay time in milliseconds between received chars in modbus RTU trasmission
 		/// </summary>
-		/// <param name="sp">Serial Port</param>
+		/// <param name="serialPort">Serial Port</param>
 		/// <returns>Calculated delay (milliseconds)</returns>
-		protected int GetIntercharDelay(SerialPort sp)
+		protected int GetIntercharDelay(SerialPort serialPort)
 		{
-			int ret_val;
+			int delay;
 
-			if (sp.BaudRate > 19200)
-				ret_val = 1;   // Fixed value = 0.75 ms up rounded
+			if (serialPort.BaudRate > 19200)
+				delay = 1;   // Fixed value = 0.75 ms up rounded
 			else
 			{
-				int nbits = 1 + sp.DataBits;
-				nbits += sp.Parity == Parity.None ? 0 : 1;
-				switch (sp.StopBits)
+				int nbits = 1 + serialPort.DataBits;
+				nbits += serialPort.Parity == Parity.None ? 0 : 1;
+				switch (serialPort.StopBits)
 				{
 					case StopBits.One:
 						nbits += 1;
@@ -549,10 +514,10 @@ namespace Modbus
 						nbits += 2;
 						break;
 				}
-				ret_val = Convert.ToInt32(Math.Ceiling(1 / (((double)sp.BaudRate / ((double)nbits * 1.5d)) / 1000)));
+				delay = Convert.ToInt32(Math.Ceiling(1 / ((serialPort.BaudRate / (nbits * 1.5d)) / 1000)));
 			}
 
-			return ret_val;
+			return delay;
 		}
 
 		#endregion
@@ -567,48 +532,36 @@ namespace Modbus
 	/// </summary>
 	public abstract class ModbusMaster : ModbusBase
 	{
-		#region Global variables
-
-		/// <summary>
-		/// Remote host connection status
-		/// </summary>
-		protected bool connected = false;
+		#region Fields
 
 		/// <summary>
 		/// Trasmission buffer
 		/// </summary>
-		protected List<byte> send_buffer = new List<byte>();
+		protected List<byte> _sendBuffer = new List<byte>();
 
 		/// <summary>
 		/// Reception buffer
 		/// </summary>
-		protected List<byte> receive_buffer = new List<byte>();
+		protected List<byte> _receiveBuffer = new List<byte>();
 
 		/// <summary>
 		/// Modbus transaction ID (only Modbus TCP/UDP)
 		/// </summary>
-		protected ushort transaction_id = 0;
-
-		#endregion
-
-		#region Istances
+		protected ushort _transactionID = 0;
 
 		/// <summary>
 		/// Interchar timeout timer
 		/// </summary>
-		protected Stopwatch sw_ch;
+		protected Stopwatch _timeoutStopwatch;
 
 		#endregion
 
-		#region Parameters
+		#region Properties
 
 		/// <summary>
-		/// Get remote host connection status
+		/// Remote host connection status
 		/// </summary>
-		public bool Connected
-		{
-			get { return connected; }
-		}
+		public bool Connected { get; set; } = false;
 
 		#endregion
 
@@ -619,15 +572,16 @@ namespace Modbus
 		/// </summary>
 		public ModbusMaster()
 		{
-			// Device type
-			device_type = DeviceType.MASTER;
-			// Initialize interchar timeout timer
-			sw_ch = new Stopwatch();
+			// Set device type.
+			_deviceType = DeviceType.MASTER;
+
+			// Initialize interchar timeout timer.
+			_timeoutStopwatch = new Stopwatch();
 		}
 
 		#endregion
 
-		#region Connect/Disconnect functions
+		#region Connection Methods
 
 		/// <summary>
 		/// Open connection
@@ -641,7 +595,7 @@ namespace Modbus
 
 		#endregion
 
-		#region Send/Receive functions
+		#region Send/Receive Methods
 
 		/// <summary>
 		/// Function to send trasminission buffer
@@ -656,17 +610,18 @@ namespace Modbus
 
 		#endregion
 
-		#region Protocol functions
+		#region Protocol Methods
 
 		/// <summary>
 		/// Init a new Modbus TCP/UDP message
 		/// </summary>
 		protected void InitTCPUDPMasterMessage()
 		{
-			// Increase transaction_id
-			transaction_id++;
-			// Tx buffer emptying
-			send_buffer.Clear();
+			// Increase transaction ID.
+			_transactionID++;
+
+			// Empty transmit buffer.
+			_sendBuffer.Clear();
 		}
 
 		/// <summary>
@@ -677,13 +632,16 @@ namespace Modbus
 		protected void BuildMBAPHeader(byte dest_address, ushort message_len)
 		{
 			// Transaction ID (incremented by 1 on each trasmission)
-			send_buffer.InsertRange(0, GetBytes(transaction_id));
+			_sendBuffer.InsertRange(0, GetBytes(_transactionID));
+
 			// Protocol ID (fixed value)
-			send_buffer.InsertRange(2, GetBytes(PROTOCOL_ID));
+			_sendBuffer.InsertRange(2, GetBytes(PROTOCOL_ID));
+
 			// Message length
-			send_buffer.InsertRange(4, GetBytes(message_len));
+			_sendBuffer.InsertRange(4, GetBytes(message_len));
+
 			// Remote unit ID
-			send_buffer.Insert(6, dest_address);
+			_sendBuffer.Insert(6, dest_address);
 		}
 
 		/// <summary>
@@ -697,33 +655,33 @@ namespace Modbus
 			long tmo;
 
 			// Set errors to null
-			error = Errors.NO_ERROR;
+			Error = Errors.NO_ERROR;
 			// Start to build message
-			switch (connection_type)
+			switch (_connectionType)
 			{
 				case ConnectionType.SERIAL_ASCII:
 					// Add destination device address
-					send_buffer.Insert(0, unit_id);
+					_sendBuffer.Insert(0, unit_id);
 					// Calc message LCR
-					byte[] lrc = GetASCIIBytesFromBinaryBuffer(new byte[] { LRC.CalcLRC(send_buffer.ToArray(), 0, send_buffer.Count) });
+					byte[] lrc = GetASCIIBytesFromBinaryBuffer(new byte[] { LRC.CalcLRC(_sendBuffer.ToArray(), 0, _sendBuffer.Count) });
 					// Convert 'send_buffer' from binary to ASCII
-					send_buffer = GetASCIIBytesFromBinaryBuffer(send_buffer.ToArray()).ToList();
+					_sendBuffer = GetASCIIBytesFromBinaryBuffer(_sendBuffer.ToArray()).ToList();
 					// Add LRC at the end of the message
-					send_buffer.AddRange(lrc);
+					_sendBuffer.AddRange(lrc);
 					// Insert the start frame char
-					send_buffer.Insert(0, Encoding.ASCII.GetBytes(new char[] { ASCII_START_FRAME }).First());
+					_sendBuffer.Insert(0, Encoding.ASCII.GetBytes(new char[] { ASCII_START_FRAME }).First());
 					// Insert stop frame chars
 					char[] end_frame = new char[] { ASCII_STOP_FRAME_1ST, ASCII_STOP_FRAME_2ND };
-					send_buffer.AddRange(Encoding.ASCII.GetBytes(end_frame));
+					_sendBuffer.AddRange(Encoding.ASCII.GetBytes(end_frame));
 					break;
 
 				case ConnectionType.SERIAL_RTU:
 					// Insert 'unit_id' in front of the message
-					send_buffer.Insert(0, unit_id);
+					_sendBuffer.Insert(0, unit_id);
 					// Append CRC16
-					send_buffer.AddRange(BitConverter.GetBytes(CRC16.CalcCRC16(send_buffer.ToArray(), 0, send_buffer.Count)));
+					_sendBuffer.AddRange(BitConverter.GetBytes(CRC16.CalcCRC16(_sendBuffer.ToArray(), 0, _sendBuffer.Count)));
 					// Wait for interframe delay
-					Thread.Sleep(interframe_delay);
+					Thread.Sleep(_interframeDelay);
 					break;
 
 				case ConnectionType.UDP_IP:
@@ -734,7 +692,7 @@ namespace Modbus
 			// Send trasmission buffer
 			Send();
 			// Start receiving...
-			receive_buffer.Clear();
+			_receiveBuffer.Clear();
 			bool done = false;
 			bool in_ric = false;
 			Stopwatch sw = new Stopwatch();
@@ -746,28 +704,28 @@ namespace Modbus
 				{
 					if (!in_ric)
 						in_ric = true;
-					if (connection_type == ConnectionType.SERIAL_ASCII)
+					if (_connectionType == ConnectionType.SERIAL_ASCII)
 					{
 						if ((byte)rcv == Encoding.ASCII.GetBytes(new char[] { ASCII_START_FRAME }).First())
-							receive_buffer.Clear();
+							_receiveBuffer.Clear();
 					}
-					receive_buffer.Add((byte)rcv);
+					_receiveBuffer.Add((byte)rcv);
 				}
 				else if ((rcv == -1) && in_ric)
 					done = true;
 				tmo = sw.ElapsedMilliseconds;
-			} while ((!done) && (rx_timeout > tmo));
-			sw_ch.Stop();
+			} while ((!done) && (RxTimeout > tmo));
+			_timeoutStopwatch.Stop();
 			sw.Stop();
-			if (tmo >= rx_timeout)
+			if (tmo >= RxTimeout)
 			{
-				error = Errors.RX_TIMEOUT;
+				Error = Errors.RX_TIMEOUT;
 				return;
 			}
 			else
 			{
 				int min_frame_length;
-				switch (connection_type)
+				switch (_connectionType)
 				{
 					default:
 					case ConnectionType.SERIAL_RTU:
@@ -783,118 +741,118 @@ namespace Modbus
 						min_frame_length = 9;
 						break;
 				}
-				if (receive_buffer.Count < min_frame_length)
+				if (_receiveBuffer.Count < min_frame_length)
 				{
-					error = Errors.WRONG_MESSAGE_LEN;
+					Error = Errors.WRONG_MESSAGE_LEN;
 					return;
 				}
-				switch (connection_type)
+				switch (_connectionType)
 				{
 					case ConnectionType.SERIAL_ASCII:
 						// Check and remove start char
-						if (receive_buffer[0] != send_buffer[0])
+						if (_receiveBuffer[0] != _sendBuffer[0])
 						{
-							error = Errors.START_CHAR_NOT_FOUND;
+							Error = Errors.START_CHAR_NOT_FOUND;
 							return;
 						}
-						receive_buffer.RemoveRange(0, 1);
+						_receiveBuffer.RemoveRange(0, 1);
 						// Check and remove stop chars
 						char[] orig_end_frame = new char[] { ASCII_STOP_FRAME_1ST, ASCII_STOP_FRAME_2ND };
-						char[] rec_end_frame = Encoding.ASCII.GetChars(receive_buffer.GetRange(receive_buffer.Count - 2, 2).ToArray());
+						char[] rec_end_frame = Encoding.ASCII.GetChars(_receiveBuffer.GetRange(_receiveBuffer.Count - 2, 2).ToArray());
 						if (!orig_end_frame.SequenceEqual(rec_end_frame))
 						{
-							error = Errors.END_CHARS_NOT_FOUND;
+							Error = Errors.END_CHARS_NOT_FOUND;
 							break;
 						}
-						receive_buffer.RemoveRange(receive_buffer.Count - 2, 2);
+						_receiveBuffer.RemoveRange(_receiveBuffer.Count - 2, 2);
 						// Convert receive buffer from ASCII to binary
-						receive_buffer = GetBinaryBufferFromASCIIBytes(receive_buffer.ToArray()).ToList();
+						_receiveBuffer = GetBinaryBufferFromASCIIBytes(_receiveBuffer.ToArray()).ToList();
 						// Check and remove message LRC
-						byte lrc_calculated = LRC.CalcLRC(receive_buffer.ToArray(), 0, receive_buffer.Count - 1);
-						byte lrc_received = receive_buffer[receive_buffer.Count - 1];
+						byte lrc_calculated = LRC.CalcLRC(_receiveBuffer.ToArray(), 0, _receiveBuffer.Count - 1);
+						byte lrc_received = _receiveBuffer[_receiveBuffer.Count - 1];
 						if (lrc_calculated != lrc_received)
 						{
-							error = Errors.WRONG_LRC;
+							Error = Errors.WRONG_LRC;
 							break;
 						}
-						receive_buffer.RemoveRange(receive_buffer.Count - 1, 1);
+						_receiveBuffer.RemoveRange(_receiveBuffer.Count - 1, 1);
 						// Remove address byte
-						receive_buffer.RemoveRange(0, 1);
+						_receiveBuffer.RemoveRange(0, 1);
 						break;
 
 					case ConnectionType.SERIAL_RTU:
 						// Check message 16-bit CRC
-						ushort calc_crc = CRC16.CalcCRC16(receive_buffer.ToArray(), 0, receive_buffer.Count - 2);
-						ushort rec_crc = BitConverter.ToUInt16(receive_buffer.ToArray(), receive_buffer.Count - 2);
+						ushort calc_crc = CRC16.CalcCRC16(_receiveBuffer.ToArray(), 0, _receiveBuffer.Count - 2);
+						ushort rec_crc = BitConverter.ToUInt16(_receiveBuffer.ToArray(), _receiveBuffer.Count - 2);
 						if (rec_crc != calc_crc)
 						{
-							error = Errors.WRONG_CRC;
+							Error = Errors.WRONG_CRC;
 							return;
 						}
 						// Check message consistency
-						byte addr = receive_buffer[0];
-						if (addr != send_buffer[0])
+						byte addr = _receiveBuffer[0];
+						if (addr != _sendBuffer[0])
 						{
-							error = Errors.WRONG_RESPONSE_ADDRESS;
+							Error = Errors.WRONG_RESPONSE_ADDRESS;
 							return;
 						}
 						// Remove address
-						receive_buffer.RemoveRange(0, 1);
+						_receiveBuffer.RemoveRange(0, 1);
 						// Remove CRC
-						receive_buffer.RemoveRange(receive_buffer.Count - 2, 2);
+						_receiveBuffer.RemoveRange(_receiveBuffer.Count - 2, 2);
 						break;
 
 					case ConnectionType.UDP_IP:
 					case ConnectionType.TCP_IP:
 						// Check MBAP header
-						ushort tid = ToUInt16(receive_buffer.ToArray(), 0);
-						if (tid != transaction_id)
+						ushort tid = ToUInt16(_receiveBuffer.ToArray(), 0);
+						if (tid != _transactionID)
 						{
-							error = Errors.WRONG_TRANSACTION_ID;
+							Error = Errors.WRONG_TRANSACTION_ID;
 							return;
 						}
-						ushort pid = ToUInt16(receive_buffer.ToArray(), 2);
+						ushort pid = ToUInt16(_receiveBuffer.ToArray(), 2);
 						if (pid != PROTOCOL_ID)
 						{
-							error = Errors.WRONG_TRANSACTION_ID;
+							Error = Errors.WRONG_TRANSACTION_ID;
 							return;
 						}
-						ushort len = ToUInt16(receive_buffer.ToArray(), 4);
-						if ((receive_buffer.Count - MBAP_HEADER_LEN + 1) < len)
+						ushort len = ToUInt16(_receiveBuffer.ToArray(), 4);
+						if ((_receiveBuffer.Count - MBAP_HEADER_LEN + 1) < len)
 						{
-							error = Errors.WRONG_MESSAGE_LEN;
+							Error = Errors.WRONG_MESSAGE_LEN;
 							return;
 						}
-						byte uid = receive_buffer[6];
-						if (uid != send_buffer[6])
+						byte uid = _receiveBuffer[6];
+						if (uid != _sendBuffer[6])
 						{
-							error = Errors.WRONG_RESPONSE_UNIT_ID;
+							Error = Errors.WRONG_RESPONSE_UNIT_ID;
 							return;
 						}
 						// Let only useful bytes in receive buffer                       
-						receive_buffer.RemoveRange(0, MBAP_HEADER_LEN);
+						_receiveBuffer.RemoveRange(0, MBAP_HEADER_LEN);
 						break;
 				}
 				// Controllo eventuali messaggi di errore
-				if (receive_buffer[0] > 0x80)
+				if (_receiveBuffer[0] > 0x80)
 				{
 					// E' stato segnalato un errore, controllo l'exception code
-					switch (receive_buffer[1])
+					switch (_receiveBuffer[1])
 					{
 						case 1:
-							error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+							Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
 							break;
 
 						case 2:
-							error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+							Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
 							break;
 
 						case 3:
-							error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+							Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
 							break;
 
 						case 4:
-							error = Errors.EXCEPTION_SLAVE_DEVICE_FAILURE;
+							Error = Errors.EXCEPTION_SLAVE_DEVICE_FAILURE;
 							break;
 					}
 				}
@@ -912,23 +870,23 @@ namespace Modbus
 		{
 			if (len < 1)
 			{
-				error = Errors.ZERO_REGISTERS_REQUESTED;
+				Error = Errors.ZERO_REGISTERS_REQUESTED;
 				return null;
 			}
 			if (len > MAX_COILS_IN_READ_MSG)
 			{
-				error = Errors.TOO_MANY_REGISTERS_REQUESTED;
+				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
 				return null;
 			}
 			ushort msg_len = 6;
 			InitTCPUDPMasterMessage();
-			send_buffer.Add((byte)ModbusCodes.READ_COILS);
-			send_buffer.AddRange(GetBytes(start_address));
-			send_buffer.AddRange(GetBytes(len));
+			_sendBuffer.Add((byte)ModbusCodes.READ_COILS);
+			_sendBuffer.AddRange(GetBytes(start_address));
+			_sendBuffer.AddRange(GetBytes(len));
 			Query(unit_id, msg_len);
-			if (error != Errors.NO_ERROR)
+			if (Error != Errors.NO_ERROR)
 				return null;
-			BitArray ba = new BitArray(receive_buffer.GetRange(2, receive_buffer.Count - 2).ToArray());
+			BitArray ba = new BitArray(_receiveBuffer.GetRange(2, _receiveBuffer.Count - 2).ToArray());
 			bool[] ret = new bool[ba.Count];
 			ba.CopyTo(ret, 0);
 			return ret;
@@ -945,23 +903,23 @@ namespace Modbus
 		{
 			if (len < 1)
 			{
-				error = Errors.ZERO_REGISTERS_REQUESTED;
+				Error = Errors.ZERO_REGISTERS_REQUESTED;
 				return null;
 			}
 			if (len > MAX_DISCRETE_INPUTS_IN_READ_MSG)
 			{
-				error = Errors.TOO_MANY_REGISTERS_REQUESTED;
+				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
 				return null;
 			}
 			ushort msg_len = 6;
 			InitTCPUDPMasterMessage();
-			send_buffer.Add((byte)ModbusCodes.READ_DISCRETE_INPUTS);
-			send_buffer.AddRange(GetBytes(start_address));
-			send_buffer.AddRange(GetBytes(len));
+			_sendBuffer.Add((byte)ModbusCodes.READ_DISCRETE_INPUTS);
+			_sendBuffer.AddRange(GetBytes(start_address));
+			_sendBuffer.AddRange(GetBytes(len));
 			Query(unit_id, msg_len);
-			if (error != Errors.NO_ERROR)
+			if (Error != Errors.NO_ERROR)
 				return null;
-			BitArray ba = new BitArray(receive_buffer.GetRange(2, receive_buffer.Count - 2).ToArray());
+			BitArray ba = new BitArray(_receiveBuffer.GetRange(2, _receiveBuffer.Count - 2).ToArray());
 			bool[] ret = new bool[ba.Count];
 			ba.CopyTo(ret, 0);
 			return ret;
@@ -978,25 +936,25 @@ namespace Modbus
 		{
 			if (len < 1)
 			{
-				error = Errors.ZERO_REGISTERS_REQUESTED;
+				Error = Errors.ZERO_REGISTERS_REQUESTED;
 				return null;
 			}
 			if (len > MAX_HOLDING_REGISTERS_IN_READ_MSG)
 			{
-				error = Errors.TOO_MANY_REGISTERS_REQUESTED;
+				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
 				return null;
 			}
 			ushort msg_len = 6;
 			InitTCPUDPMasterMessage();
-			send_buffer.Add((byte)ModbusCodes.READ_HOLDING_REGISTERS);
-			send_buffer.AddRange(GetBytes(start_address));
-			send_buffer.AddRange(GetBytes(len));
+			_sendBuffer.Add((byte)ModbusCodes.READ_HOLDING_REGISTERS);
+			_sendBuffer.AddRange(GetBytes(start_address));
+			_sendBuffer.AddRange(GetBytes(len));
 			Query(unit_id, msg_len);
-			if (error != Errors.NO_ERROR)
+			if (Error != Errors.NO_ERROR)
 				return null;
 			List<ushort> ret = new List<ushort>();
-			for (int ii = 0; ii < receive_buffer[1]; ii += 2)
-				ret.Add(ToUInt16(receive_buffer.ToArray(), ii + 2));
+			for (int ii = 0; ii < _receiveBuffer[1]; ii += 2)
+				ret.Add(ToUInt16(_receiveBuffer.ToArray(), ii + 2));
 			return ret.ToArray();
 		}
 
@@ -1011,25 +969,25 @@ namespace Modbus
 		{
 			if (len < 1)
 			{
-				error = Errors.ZERO_REGISTERS_REQUESTED;
+				Error = Errors.ZERO_REGISTERS_REQUESTED;
 				return null;
 			}
 			if (len > MAX_INPUT_REGISTERS_IN_READ_MSG)
 			{
-				error = Errors.TOO_MANY_REGISTERS_REQUESTED;
+				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
 				return null;
 			}
 			ushort msg_len = 6;
 			InitTCPUDPMasterMessage();
-			send_buffer.Add((byte)ModbusCodes.READ_INPUT_REGISTERS);
-			send_buffer.AddRange(GetBytes(start_address));
-			send_buffer.AddRange(GetBytes(len));
+			_sendBuffer.Add((byte)ModbusCodes.READ_INPUT_REGISTERS);
+			_sendBuffer.AddRange(GetBytes(start_address));
+			_sendBuffer.AddRange(GetBytes(len));
 			Query(unit_id, msg_len);
-			if (error != Errors.NO_ERROR)
+			if (Error != Errors.NO_ERROR)
 				return null;
 			List<ushort> ret = new List<ushort>();
-			for (int ii = 0; ii < receive_buffer[1]; ii += 2)
-				ret.Add(ToUInt16(receive_buffer.ToArray(), ii + 2));
+			for (int ii = 0; ii < _receiveBuffer[1]; ii += 2)
+				ret.Add(ToUInt16(_receiveBuffer.ToArray(), ii + 2));
 			return ret.ToArray();
 		}
 
@@ -1043,22 +1001,22 @@ namespace Modbus
 		{
 			ushort msg_len = 6;
 			InitTCPUDPMasterMessage();
-			send_buffer.Add((byte)ModbusCodes.WRITE_SINGLE_COIL);
-			send_buffer.AddRange(GetBytes(address));
-			send_buffer.AddRange(GetBytes((ushort)(value == true ? 0xFF00 : 0x0000)));
+			_sendBuffer.Add((byte)ModbusCodes.WRITE_SINGLE_COIL);
+			_sendBuffer.AddRange(GetBytes(address));
+			_sendBuffer.AddRange(GetBytes((ushort)(value == true ? 0xFF00 : 0x0000)));
 			Query(unit_id, msg_len);
-			if (error == Errors.NO_ERROR)
+			if (Error == Errors.NO_ERROR)
 			{
-				ushort addr = ToUInt16(receive_buffer.ToArray(), 1);
-				ushort regval = ToUInt16(receive_buffer.ToArray(), 3);
+				ushort addr = ToUInt16(_receiveBuffer.ToArray(), 1);
+				ushort regval = ToUInt16(_receiveBuffer.ToArray(), 3);
 				if (addr != address)
 				{
-					error = Errors.WRONG_RESPONSE_ADDRESS;
+					Error = Errors.WRONG_RESPONSE_ADDRESS;
 					return;
 				}
 				if ((regval == 0xFF00) && !value)
 				{
-					error = Errors.WRONG_RESPONSE_VALUE;
+					Error = Errors.WRONG_RESPONSE_VALUE;
 					return;
 				}
 			}
@@ -1074,16 +1032,16 @@ namespace Modbus
 		{
 			ushort msg_len = 6;
 			InitTCPUDPMasterMessage();
-			send_buffer.Add((byte)ModbusCodes.WRITE_SINGLE_REGISTER);
-			send_buffer.AddRange(GetBytes(address));
-			send_buffer.AddRange(GetBytes(value));
+			_sendBuffer.Add((byte)ModbusCodes.WRITE_SINGLE_REGISTER);
+			_sendBuffer.AddRange(GetBytes(address));
+			_sendBuffer.AddRange(GetBytes(value));
 			Query(unit_id, msg_len);
-			if (error == Errors.NO_ERROR)
+			if (Error == Errors.NO_ERROR)
 			{
-				ushort addr = ToUInt16(receive_buffer.ToArray(), 1);
+				ushort addr = ToUInt16(_receiveBuffer.ToArray(), 1);
 				if (addr != address)
 				{
-					error = Errors.WRONG_RESPONSE_ADDRESS;
+					Error = Errors.WRONG_RESPONSE_ADDRESS;
 					return;
 				}
 			}
@@ -1099,17 +1057,17 @@ namespace Modbus
 		{
 			if (values == null)
 			{
-				error = Errors.ZERO_REGISTERS_REQUESTED;
+				Error = Errors.ZERO_REGISTERS_REQUESTED;
 				return;
 			}
 			if (values.Length < 1)
 			{
-				error = Errors.ZERO_REGISTERS_REQUESTED;
+				Error = Errors.ZERO_REGISTERS_REQUESTED;
 				return;
 			}
 			if (values.Length > MAX_COILS_IN_WRITE_MSG)
 			{
-				error = Errors.TOO_MANY_REGISTERS_REQUESTED;
+				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
 				return;
 			}
 			byte byte_cnt = (byte)((values.Length / 8) + ((values.Length % 8) == 0 ? 0 : 1));
@@ -1118,24 +1076,24 @@ namespace Modbus
 			BitArray ba = new BitArray(values);
 			ba.CopyTo(data, 0);
 			InitTCPUDPMasterMessage();
-			send_buffer.Add((byte)ModbusCodes.WRITE_MULTIPLE_COILS);
-			send_buffer.AddRange(GetBytes(start_address));
-			send_buffer.AddRange(GetBytes((ushort)values.Length));
-			send_buffer.Add(byte_cnt);
-			send_buffer.AddRange(data);
+			_sendBuffer.Add((byte)ModbusCodes.WRITE_MULTIPLE_COILS);
+			_sendBuffer.AddRange(GetBytes(start_address));
+			_sendBuffer.AddRange(GetBytes((ushort)values.Length));
+			_sendBuffer.Add(byte_cnt);
+			_sendBuffer.AddRange(data);
 			Query(unit_id, msg_len);
-			if (error == Errors.NO_ERROR)
+			if (Error == Errors.NO_ERROR)
 			{
-				ushort sa = ToUInt16(receive_buffer.ToArray(), 1);
-				ushort nr = ToUInt16(receive_buffer.ToArray(), 3);
+				ushort sa = ToUInt16(_receiveBuffer.ToArray(), 1);
+				ushort nr = ToUInt16(_receiveBuffer.ToArray(), 3);
 				if (sa != start_address)
 				{
-					error = Errors.WRONG_RESPONSE_ADDRESS;
+					Error = Errors.WRONG_RESPONSE_ADDRESS;
 					return;
 				}
 				if (nr != values.Length)
 				{
-					error = Errors.WRONG_RESPONSE_REGISTERS;
+					Error = Errors.WRONG_RESPONSE_REGISTERS;
 					return;
 				}
 			}
@@ -1151,40 +1109,40 @@ namespace Modbus
 		{
 			if (values == null)
 			{
-				error = Errors.ZERO_REGISTERS_REQUESTED;
+				Error = Errors.ZERO_REGISTERS_REQUESTED;
 				return;
 			}
 			if (values.Length < 1)
 			{
-				error = Errors.ZERO_REGISTERS_REQUESTED;
+				Error = Errors.ZERO_REGISTERS_REQUESTED;
 				return;
 			}
 			if (values.Length > MAX_HOLDING_REGISTERS_IN_WRITE_MSG)
 			{
-				error = Errors.TOO_MANY_REGISTERS_REQUESTED;
+				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
 				return;
 			}
 			ushort msg_len = (ushort)(7 + (values.Length * 2));
 			InitTCPUDPMasterMessage();
-			send_buffer.Add((byte)ModbusCodes.WRITE_MULTIPLE_REGISTERS);
-			send_buffer.AddRange(GetBytes(start_address));
-			send_buffer.AddRange(GetBytes((ushort)values.Length));
-			send_buffer.Add((byte)(values.Length * 2));
+			_sendBuffer.Add((byte)ModbusCodes.WRITE_MULTIPLE_REGISTERS);
+			_sendBuffer.AddRange(GetBytes(start_address));
+			_sendBuffer.AddRange(GetBytes((ushort)values.Length));
+			_sendBuffer.Add((byte)(values.Length * 2));
 			for (int ii = 0; ii < values.Length; ii++)
-				send_buffer.AddRange(GetBytes(values[ii]));
+				_sendBuffer.AddRange(GetBytes(values[ii]));
 			Query(unit_id, msg_len);
-			if (error == Errors.NO_ERROR)
+			if (Error == Errors.NO_ERROR)
 			{
-				ushort sa = ToUInt16(receive_buffer.ToArray(), 1);
-				ushort nr = ToUInt16(receive_buffer.ToArray(), 3);
+				ushort sa = ToUInt16(_receiveBuffer.ToArray(), 1);
+				ushort nr = ToUInt16(_receiveBuffer.ToArray(), 3);
 				if (sa != start_address)
 				{
-					error = Errors.WRONG_RESPONSE_ADDRESS;
+					Error = Errors.WRONG_RESPONSE_ADDRESS;
 					return;
 				}
 				if (nr != values.Length)
 				{
-					error = Errors.WRONG_RESPONSE_REGISTERS;
+					Error = Errors.WRONG_RESPONSE_REGISTERS;
 					return;
 				}
 			}
@@ -1201,32 +1159,32 @@ namespace Modbus
 		{
 			ushort msg_len = 8;
 			InitTCPUDPMasterMessage();
-			send_buffer.Add((byte)ModbusCodes.MASK_WRITE_REGISTER);
-			send_buffer.AddRange(GetBytes(address));
-			send_buffer.AddRange(GetBytes(and_mask));
-			send_buffer.AddRange(GetBytes(or_mask));
+			_sendBuffer.Add((byte)ModbusCodes.MASK_WRITE_REGISTER);
+			_sendBuffer.AddRange(GetBytes(address));
+			_sendBuffer.AddRange(GetBytes(and_mask));
+			_sendBuffer.AddRange(GetBytes(or_mask));
 			Query(unit_id, msg_len);
-			if (error == Errors.NO_ERROR)
+			if (Error == Errors.NO_ERROR)
 			{
 				// Check address
-				ushort addr = ToUInt16(receive_buffer.ToArray(), 1);
+				ushort addr = ToUInt16(_receiveBuffer.ToArray(), 1);
 				if (address != addr)
 				{
-					error = Errors.WRONG_RESPONSE_ADDRESS;
+					Error = Errors.WRONG_RESPONSE_ADDRESS;
 					return;
 				}
 				// Check AND mask
-				ushort am = ToUInt16(receive_buffer.ToArray(), 3);
+				ushort am = ToUInt16(_receiveBuffer.ToArray(), 3);
 				if (and_mask != am)
 				{
-					error = Errors.WRONG_RESPONSE_AND_MASK;
+					Error = Errors.WRONG_RESPONSE_AND_MASK;
 					return;
 				}
 				// Check OR mask
-				ushort om = ToUInt16(receive_buffer.ToArray(), 5);
+				ushort om = ToUInt16(_receiveBuffer.ToArray(), 5);
 				if (or_mask != om)
 				{
-					error = Errors.WRONG_RESPONSE_OR_MASK;
+					Error = Errors.WRONG_RESPONSE_OR_MASK;
 					return;
 				}
 			}
@@ -1248,35 +1206,35 @@ namespace Modbus
 		{
 			if (values == null)
 			{
-				error = Errors.ZERO_REGISTERS_REQUESTED;
+				Error = Errors.ZERO_REGISTERS_REQUESTED;
 				return null;
 			}
 			if ((read_len < 1) || (values.Length < 1))
 			{
-				error = Errors.ZERO_REGISTERS_REQUESTED;
+				Error = Errors.ZERO_REGISTERS_REQUESTED;
 				return null;
 			}
 			if ((read_len > MAX_HOLDING_REGISTERS_TO_READ_IN_READWRITE_MSG) || (values.Length > MAX_HOLDING_REGISTERS_TO_WRITE_IN_READWRITE_MSG))
 			{
-				error = Errors.TOO_MANY_REGISTERS_REQUESTED;
+				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
 				return null;
 			}
 			ushort msg_len = (ushort)(11 + (values.Length * 2));
 			InitTCPUDPMasterMessage();
-			send_buffer.Add((byte)ModbusCodes.READ_WRITE_MULTIPLE_REGISTERS);
-			send_buffer.AddRange(GetBytes(read_start_address));
-			send_buffer.AddRange(GetBytes(read_len));
-			send_buffer.AddRange(GetBytes(write_start_address));
-			send_buffer.AddRange(GetBytes((ushort)values.Length));
-			send_buffer.Add((byte)(values.Length * 2));
+			_sendBuffer.Add((byte)ModbusCodes.READ_WRITE_MULTIPLE_REGISTERS);
+			_sendBuffer.AddRange(GetBytes(read_start_address));
+			_sendBuffer.AddRange(GetBytes(read_len));
+			_sendBuffer.AddRange(GetBytes(write_start_address));
+			_sendBuffer.AddRange(GetBytes((ushort)values.Length));
+			_sendBuffer.Add((byte)(values.Length * 2));
 			for (int ii = 0; ii < values.Length; ii++)
-				send_buffer.AddRange(GetBytes(values[ii]));
+				_sendBuffer.AddRange(GetBytes(values[ii]));
 			Query(unit_id, msg_len);
-			if (error != Errors.NO_ERROR)
+			if (Error != Errors.NO_ERROR)
 				return null;
 			List<ushort> ret = new List<ushort>();
-			for (int ii = 0; ii < receive_buffer[1]; ii += 2)
-				ret.Add(ToUInt16(receive_buffer.ToArray(), ii + 2));
+			for (int ii = 0; ii < _receiveBuffer[1]; ii += 2)
+				ret.Add(ToUInt16(_receiveBuffer.ToArray(), ii + 2));
 			return ret.ToArray();
 		}
 
@@ -1292,49 +1250,36 @@ namespace Modbus
 	/// </summary>
 	public abstract class ModbusSlave : ModbusBase
 	{
-		#region Global variables
+		#region Fields
 
 		/// <summary>
 		/// Execution status of thread that manage calls
 		/// </summary>
-		protected volatile bool run = false;
+		protected volatile bool _run = false;
 
 		/// <summary>
 		/// Timeout between two chars in modbus RTU
 		/// </summary>
-		long char_tmo;
-
-		#endregion
-
-		#region Instances
-
-		/// <summary>
-		/// Database Modbus
-		/// </summary>
-		protected Datastore[] modbus_db;
+		private long _charTimeout;
 
 		/// <summary>
 		/// Incoming calls management thread
 		/// </summary>
-		protected Thread gest_request;
+		protected Thread _guestRequest;
 
 		/// <summary>
 		/// Interchar timeout timer
 		/// </summary>
-		Stopwatch sw_ch;
+		Stopwatch _timeoutStopwatch;
 
 		#endregion
 
-		#region Parameters
+		#region Properties
 
 		/// <summary>
 		/// Database Modbus
 		/// </summary>
-		public Datastore[] ModbusDB
-		{
-			get { return modbus_db; }
-			set { modbus_db = value; }
-		}
+		public Datastore[] ModbusDatabase { get; set; }
 
 		#endregion
 
@@ -1343,108 +1288,104 @@ namespace Modbus
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="ds">Database Modbus</param>
-		public ModbusSlave(Datastore[] ds)
+		/// <param name="datastore">Database Modbus</param>
+		public ModbusSlave(Datastore[] datastore)
 		{
 			// Device status
-			device_type = DeviceType.SLAVE;
+			_deviceType = DeviceType.SLAVE;
 			// Assign modbus database
-			modbus_db = ds;
+			ModbusDatabase = datastore;
 			// Initialize timer
-			sw_ch = new Stopwatch();
+			_timeoutStopwatch = new Stopwatch();
 		}
 
 		#endregion
 
-		#region Incoming calls management thread
+		#region Abstract Methods
 
 		/// <summary>
 		/// Incoming calls management thread
 		/// </summary>
-		protected abstract void GestRequests();
-
-		#endregion
-
-		#region Start and stop listening messages
+		protected abstract void GuestRequests();
 
 		/// <summary>
 		/// Function prototype for start listening messages        
 		/// </summary>
-		public abstract void StartListen();
+		public abstract void StartListening();
 
 		/// <summary>
 		/// Function prototype for stop listening messages
 		/// </summary>
-		public abstract void StopListen();
+		public abstract void StopListening();
 
 		#endregion
 
-		#region Protocol functions
+		#region Protocol Methods
 
 		/// <summary>
 		/// Check if all registers from (starting_address + quantity_of_registers) are present in device database
 		/// </summary>
-		/// <param name="unit_id">Unit ID</param>
+		/// <param name="unitID">Unit ID</param>
 		/// <param name="table">Tabella del database modbus</param>
-		/// <param name="starting_address">Starting address (offset) in database</param>
-		/// <param name="quantity_of_registers">Quantity of registers to read/write</param>
+		/// <param name="startingAddress">Starting address (offset) in database</param>
+		/// <param name="numRegisters">Quantity of registers to read/write</param>
 		/// <returns>True if register are present, otherwhise False</returns>
-		bool IsAllRegistersPresent(byte unit_id, ModbusDBTables table, ushort starting_address, ushort quantity_of_registers)
+		bool IsAllRegistersPresent(byte unitID, ModbusDBTables table, ushort startingAddress, ushort numRegisters)
 		{
-			bool ret = true;
+			bool result = true;
 
 			switch (table)
 			{
 				case ModbusDBTables.DISCRETE_INPUTS_REGISTERS:
 					try
 					{
-						modbus_db.Single(x => x.UnitID == unit_id).DiscreteInputs.ToList().GetRange(starting_address, quantity_of_registers);
+						ModbusDatabase.Single(x => x.UnitID == unitID).DiscreteInputs.ToList().GetRange(startingAddress, numRegisters);
 					}
 					catch
 					{
-						ret = false;
+						result = false;
 					}
 					break;
 
 				case ModbusDBTables.COIL_REGISTERS:
 					try
 					{
-						modbus_db.Single(x => x.UnitID == unit_id).Coils.ToList().GetRange(starting_address, quantity_of_registers);
+						ModbusDatabase.Single(x => x.UnitID == unitID).Coils.ToList().GetRange(startingAddress, numRegisters);
 					}
 					catch
 					{
-						ret = false;
+						result = false;
 					}
 					break;
 
 				case ModbusDBTables.INPUT_REGISTERS:
 					try
 					{
-						modbus_db.Single(x => x.UnitID == unit_id).InputRegisters.ToList().GetRange(starting_address, quantity_of_registers);
+						ModbusDatabase.Single(x => x.UnitID == unitID).InputRegisters.ToList().GetRange(startingAddress, numRegisters);
 					}
 					catch
 					{
-						ret = false;
+						result = false;
 					}
 					break;
 
 				case ModbusDBTables.HOLDING_REGISTERS:
 					try
 					{
-						modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters.ToList().GetRange(starting_address, quantity_of_registers);
+						ModbusDatabase.Single(x => x.UnitID == unitID).HoldingRegisters.ToList().GetRange(startingAddress, numRegisters);
 					}
 					catch
 					{
-						ret = false;
+						result = false;
 					}
 					break;
 
 				default:
-					ret = false;
+					result = false;
 					break;
 			}
 
-			return ret;
+			return result;
 		}
 
 		/// <summary>
@@ -1491,7 +1432,7 @@ namespace Modbus
 		{
 			int ret = -1;
 
-			switch (connection_type)
+			switch (_connectionType)
 			{
 				case ConnectionType.UDP_IP:
 					UDPData udpd = (UDPData)flux;
@@ -1511,8 +1452,8 @@ namespace Modbus
 					bool done = false;
 
 					// Await 1 char...
-					if (!sw_ch.IsRunning)
-						sw_ch.Start();
+					if (!_timeoutStopwatch.IsRunning)
+						_timeoutStopwatch.Start();
 
 					do
 					{
@@ -1523,10 +1464,10 @@ namespace Modbus
 						}
 						else
 							ret = -1;
-					} while ((!done) && ((sw_ch.ElapsedMilliseconds - char_tmo) < interchar_delay));
+					} while ((!done) && ((_timeoutStopwatch.ElapsedMilliseconds - _charTimeout) < _intercharDelay));
 
 					if (done)
-						char_tmo = sw_ch.ElapsedMilliseconds;   // Char received with no errors...reset timeout counter for next char!
+						_charTimeout = _timeoutStopwatch.ElapsedMilliseconds;   // Char received with no errors...reset timeout counter for next char!
 
 					break;
 			}
@@ -1543,7 +1484,7 @@ namespace Modbus
 		/// <param name="size">Number of bytes to write</param>
 		void WriteBuffer(object flux, byte[] buffer, int offset, int size)
 		{
-			switch (connection_type)
+			switch (_connectionType)
 			{
 				case ConnectionType.UDP_IP:
 					UDPData udpd = (UDPData)flux;
@@ -1577,7 +1518,7 @@ namespace Modbus
 			Stopwatch sw = new Stopwatch();
 
 			// Set errors at 0
-			error = Errors.NO_ERROR;
+			Error = Errors.NO_ERROR;
 			// Empting reception buffer
 			receive_buffer.Clear();
 			// Start reception loop
@@ -1585,7 +1526,7 @@ namespace Modbus
 			sw.Start();
 			bool in_ric = false;
 			bool done = false;
-			char_tmo = 0;
+			_charTimeout = 0;
 			do
 			{
 				data = ReadByte(flux);
@@ -1593,7 +1534,7 @@ namespace Modbus
 				{
 					if (!in_ric)
 						in_ric = true;
-					if (connection_type == ConnectionType.SERIAL_ASCII)
+					if (_connectionType == ConnectionType.SERIAL_ASCII)
 					{
 						if ((byte)data == Encoding.ASCII.GetBytes(new char[] { ASCII_START_FRAME }).First())
 							receive_buffer.Clear();
@@ -1606,35 +1547,35 @@ namespace Modbus
 					Thread.Sleep(1);
 				// Calc elapsed time since reception start
 				elapsed_time = sw.ElapsedMilliseconds;
-			} while ((elapsed_time < rx_timeout) && run && (!done));
-			sw_ch.Stop();
+			} while ((elapsed_time < RxTimeout) && _run && (!done));
+			_timeoutStopwatch.Stop();
 			sw.Stop();
 			// Check for a stop request
-			if (!run)
+			if (!_run)
 			{
-				error = Errors.THREAD_BLOCK_REQUEST;
+				Error = Errors.THREAD_BLOCK_REQUEST;
 				return;
 			}
 			// Check for timeout error
-			if (elapsed_time >= rx_timeout)
+			if (elapsed_time >= RxTimeout)
 			{
-				error = Errors.RX_TIMEOUT;
+				Error = Errors.RX_TIMEOUT;
 				return;
 			}
 			// Check message length
 			if (receive_buffer.Count < 3)
 			{
-				error = Errors.WRONG_MESSAGE_LEN;
+				Error = Errors.WRONG_MESSAGE_LEN;
 				return;
 			}
 			// Message received, start decoding...
-			switch (connection_type)
+			switch (_connectionType)
 			{
 				case ConnectionType.SERIAL_ASCII:
 					// Check and delete start char
 					if (Encoding.ASCII.GetChars(receive_buffer.ToArray()).FirstOrDefault() != ASCII_START_FRAME)
 					{
-						error = Errors.START_CHAR_NOT_FOUND;
+						Error = Errors.START_CHAR_NOT_FOUND;
 						return;
 					}
 					receive_buffer.RemoveAt(0);
@@ -1643,7 +1584,7 @@ namespace Modbus
 					char[] last_two = Encoding.ASCII.GetChars(receive_buffer.GetRange(receive_buffer.Count - 2, 2).ToArray());
 					if (!end_chars.SequenceEqual(last_two))
 					{
-						error = Errors.END_CHARS_NOT_FOUND;
+						Error = Errors.END_CHARS_NOT_FOUND;
 						return;
 					}
 					receive_buffer.RemoveRange(receive_buffer.Count - 2, 2);
@@ -1654,13 +1595,13 @@ namespace Modbus
 					byte calc_lrc = LRC.CalcLRC(receive_buffer.ToArray(), 0, receive_buffer.Count - 1);
 					if (msg_lrc != calc_lrc)
 					{
-						error = Errors.WRONG_LRC;
+						Error = Errors.WRONG_LRC;
 						return;
 					}
 					receive_buffer.RemoveAt(receive_buffer.Count - 1);
 					// Analize destination address, if not present in database, discard message and continue
 					unit_id = receive_buffer[0];
-					if (!modbus_db.Any(x => x.UnitID == unit_id))
+					if (!ModbusDatabase.Any(x => x.UnitID == unit_id))
 						return;
 					receive_buffer.RemoveAt(0);
 					break;
@@ -1671,12 +1612,12 @@ namespace Modbus
 					ushort calc_crc = CRC16.CalcCRC16(receive_buffer.ToArray(), 0, receive_buffer.Count - 2);
 					if (msg_crc != calc_crc)
 					{
-						error = Errors.WRONG_CRC;
+						Error = Errors.WRONG_CRC;
 						return;
 					}
 					// Analize destination address, if not present in database, discard message and continue
 					unit_id = receive_buffer[0];
-					if (!modbus_db.Any(x => x.UnitID == unit_id))
+					if (!ModbusDatabase.Any(x => x.UnitID == unit_id))
 						return;
 					// Message is ok, remove unit_id and CRC                    
 					receive_buffer.RemoveRange(0, 1);
@@ -1691,19 +1632,19 @@ namespace Modbus
 					ushort protocol_id = ToUInt16(receive_buffer.ToArray(), 2);
 					if (protocol_id != PROTOCOL_ID)
 					{
-						error = Errors.WRONG_PROTOCOL_ID;
+						Error = Errors.WRONG_PROTOCOL_ID;
 						return;
 					}
 					// Acquire data length and check it                    
 					ushort len = ToUInt16(receive_buffer.ToArray(), 4);
 					if ((receive_buffer.Count - 6) != len)
 					{
-						error = Errors.WRONG_MESSAGE_LEN;
+						Error = Errors.WRONG_MESSAGE_LEN;
 						return;
 					}
 					// Analize destination address, if not present in database, discard message and continue
 					unit_id = receive_buffer[6];
-					if (!modbus_db.Any(x => x.UnitID == unit_id))
+					if (!ModbusDatabase.Any(x => x.UnitID == unit_id))
 						return;
 					// Message is ok, remove MBAP header for reception buffer                    
 					receive_buffer.RemoveRange(0, MBAP_HEADER_LEN);
@@ -1739,22 +1680,22 @@ namespace Modbus
 					// Read received commands
 					sa = ToUInt16(receive_buffer.ToArray(), 1);
 					qor = ToUInt16(receive_buffer.ToArray(), 3);
-					if (modbus_db.Single(x => x.UnitID == unit_id).Coils.Length == 0)
+					if (ModbusDatabase.Single(x => x.UnitID == unit_id).Coils.Length == 0)
 					{
-						error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!((qor >= 1) && (qor <= MAX_COILS_IN_READ_MSG)))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!IsAllRegistersPresent(unit_id, ModbusDBTables.COIL_REGISTERS, sa, qor))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					// Reply
@@ -1764,7 +1705,7 @@ namespace Modbus
 					ret_vals = new bool[bytes * 8];
 					try
 					{
-						modbus_db.Single(x => x.UnitID == unit_id).Coils.ToList().GetRange(sa, qor).CopyTo(ret_vals);
+						ModbusDatabase.Single(x => x.UnitID == unit_id).Coils.ToList().GetRange(sa, qor).CopyTo(ret_vals);
 					}
 					catch
 					{
@@ -1779,22 +1720,22 @@ namespace Modbus
 					// Read received commands                    
 					sa = ToUInt16(receive_buffer.ToArray(), 1);
 					qor = ToUInt16(receive_buffer.ToArray(), 3);
-					if (modbus_db.Single(x => x.UnitID == unit_id).DiscreteInputs.Length == 0)
+					if (ModbusDatabase.Single(x => x.UnitID == unit_id).DiscreteInputs.Length == 0)
 					{
-						error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!((qor >= 1) && (qor <= MAX_DISCRETE_INPUTS_IN_READ_MSG)))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!IsAllRegistersPresent(unit_id, ModbusDBTables.DISCRETE_INPUTS_REGISTERS, sa, qor))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					// Reply
@@ -1804,7 +1745,7 @@ namespace Modbus
 					ret_vals = new bool[bytes * 8];
 					try
 					{
-						modbus_db.Single(x => x.UnitID == unit_id).DiscreteInputs.ToList().GetRange(sa, qor).CopyTo(ret_vals);
+						ModbusDatabase.Single(x => x.UnitID == unit_id).DiscreteInputs.ToList().GetRange(sa, qor).CopyTo(ret_vals);
 					}
 					catch
 					{
@@ -1819,22 +1760,22 @@ namespace Modbus
 					// Read received commands
 					sa = ToUInt16(receive_buffer.ToArray(), 1);
 					qor = ToUInt16(receive_buffer.ToArray(), 3);
-					if (modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters.Length == 0)
+					if (ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters.Length == 0)
 					{
-						error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!((qor >= 1) && (qor <= MAX_HOLDING_REGISTERS_IN_READ_MSG)))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!IsAllRegistersPresent(unit_id, ModbusDBTables.HOLDING_REGISTERS, sa, qor))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					// Reply
@@ -1843,7 +1784,7 @@ namespace Modbus
 					try
 					{
 						for (int ii = 0; ii < (qor * 2); ii += 2)
-							send_buffer.AddRange(GetBytes(modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters[sa + (ii / 2)]));
+							send_buffer.AddRange(GetBytes(ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[sa + (ii / 2)]));
 					}
 					catch
 					{
@@ -1856,22 +1797,22 @@ namespace Modbus
 					// Read received commands
 					sa = ToUInt16(receive_buffer.ToArray(), 1);
 					qor = ToUInt16(receive_buffer.ToArray(), 3);
-					if (modbus_db.Single(x => x.UnitID == unit_id).InputRegisters.Length == 0)
+					if (ModbusDatabase.Single(x => x.UnitID == unit_id).InputRegisters.Length == 0)
 					{
-						error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!((qor >= 1) && (qor <= MAX_INPUT_REGISTERS_IN_READ_MSG)))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!IsAllRegistersPresent(unit_id, ModbusDBTables.INPUT_REGISTERS, sa, qor))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					// Reply
@@ -1880,7 +1821,7 @@ namespace Modbus
 					try
 					{
 						for (int ii = 0; ii < (qor * 2); ii += 2)
-							send_buffer.AddRange(GetBytes(modbus_db.Single(x => x.UnitID == unit_id).InputRegisters[sa + (ii / 2)]));
+							send_buffer.AddRange(GetBytes(ModbusDatabase.Single(x => x.UnitID == unit_id).InputRegisters[sa + (ii / 2)]));
 					}
 					catch
 					{
@@ -1904,35 +1845,35 @@ namespace Modbus
 							break;
 
 						default:
-							error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+							Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
 							cv = false; // Dummy
 							break;
 					}
-					if (modbus_db.Single(x => x.UnitID == unit_id).Coils.Length == 0)
+					if (ModbusDatabase.Single(x => x.UnitID == unit_id).Coils.Length == 0)
 					{
-						error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
-					if (error == Errors.EXCEPTION_ILLEGAL_DATA_VALUE)
+					if (Error == Errors.EXCEPTION_ILLEGAL_DATA_VALUE)
 					{
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!IsAllRegistersPresent(unit_id, ModbusDBTables.COIL_REGISTERS, sa, 1))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
-					if (error == Errors.WRONG_WRITE_SINGLE_COIL_VALUE)
+					if (Error == Errors.WRONG_WRITE_SINGLE_COIL_VALUE)
 					{
 						BuildExceptionMessage(send_buffer, mdbcode, Errors.EXCEPTION_ILLEGAL_DATA_VALUE);
 						break;
 					}
 					try
 					{
-						modbus_db.Single(x => x.UnitID == unit_id).Coils[sa] = cv;
+						ModbusDatabase.Single(x => x.UnitID == unit_id).Coils[sa] = cv;
 					}
 					catch
 					{
@@ -1949,27 +1890,27 @@ namespace Modbus
 					// Adjusting
 					sa = ToUInt16(receive_buffer.ToArray(), 1);
 					val = ToUInt16(receive_buffer.ToArray(), 3);
-					if (modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters.Length == 0)
+					if (ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters.Length == 0)
 					{
-						error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!((val >= 0x0000) && (val <= 0xFFFF)))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!IsAllRegistersPresent(unit_id, ModbusDBTables.HOLDING_REGISTERS, sa, 1))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					try
 					{
-						modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters[sa] = val;
+						ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[sa] = val;
 					}
 					catch
 					{
@@ -1986,22 +1927,22 @@ namespace Modbus
 					// Adjusting
 					sa = ToUInt16(receive_buffer.ToArray(), 1);
 					qor = ToUInt16(receive_buffer.ToArray(), 3);
-					if (modbus_db.Single(x => x.UnitID == unit_id).Coils.Length == 0)
+					if (ModbusDatabase.Single(x => x.UnitID == unit_id).Coils.Length == 0)
 					{
-						error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!((qor >= 1) && (qor <= MAX_COILS_IN_WRITE_MSG)))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!IsAllRegistersPresent(unit_id, ModbusDBTables.COIL_REGISTERS, sa, qor))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					bc = receive_buffer[5];
@@ -2009,7 +1950,7 @@ namespace Modbus
 					BitArray ba = new BitArray(buffer);
 					try
 					{
-						ba.CopyTo(modbus_db.Single(x => x.UnitID == unit_id).Coils, sa);
+						ba.CopyTo(ModbusDatabase.Single(x => x.UnitID == unit_id).Coils, sa);
 					}
 					catch
 					{
@@ -2026,29 +1967,31 @@ namespace Modbus
 					// Adjusting
 					sa = ToUInt16(receive_buffer.ToArray(), 1);
 					qor = ToUInt16(receive_buffer.ToArray(), 3);
-					if (modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters.Length == 0)
+					if (ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters.Length == 0)
 					{
-						error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!((qor >= 1) && (qor <= MAX_HOLDING_REGISTERS_IN_WRITE_MSG)))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!IsAllRegistersPresent(unit_id, ModbusDBTables.HOLDING_REGISTERS, sa, qor))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					bc = receive_buffer[5];
 					try
 					{
 						for (int ii = 0; ii < bc; ii += 2)
-							modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters[sa + (ii / 2)] = ToUInt16(receive_buffer.ToArray(), 6 + ii);
+						{
+							ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[sa + (ii / 2)] = ToUInt16(receive_buffer.ToArray(), 6 + ii);
+						}
 					}
 					catch
 					{
@@ -2066,28 +2009,28 @@ namespace Modbus
 					sa = ToUInt16(receive_buffer.ToArray(), 1);
 					and_mask = ToUInt16(receive_buffer.ToArray(), 3);
 					or_mask = ToUInt16(receive_buffer.ToArray(), 5);
-					if (modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters.Length == 0)
+					if (ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters.Length == 0)
 					{
-						error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!(((and_mask >= 0x0000) && (and_mask <= 0xFFFF)) || ((and_mask >= 0x0000) && (and_mask <= 0xFFFF))))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!IsAllRegistersPresent(unit_id, ModbusDBTables.HOLDING_REGISTERS, sa, 1))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					try
 					{
-						modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters[sa] =
-							(ushort)((modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters[sa] & and_mask) | (or_mask & (~and_mask)));
+						ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[sa] =
+							(ushort)((ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[sa] & and_mask) | (or_mask & (~and_mask)));
 					}
 					catch
 					{
@@ -2107,24 +2050,24 @@ namespace Modbus
 					qor = ToUInt16(receive_buffer.ToArray(), 3);
 					sa1 = ToUInt16(receive_buffer.ToArray(), 5);
 					qor1 = ToUInt16(receive_buffer.ToArray(), 7);
-					if (modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters.Length == 0)
+					if (ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters.Length == 0)
 					{
-						error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if (!(((qor >= 1) && (qor <= MAX_HOLDING_REGISTERS_TO_READ_IN_READWRITE_MSG)) ||
 						((qor1 >= 1) && (qor1 <= MAX_HOLDING_REGISTERS_TO_WRITE_IN_READWRITE_MSG))))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					if ((!IsAllRegistersPresent(unit_id, ModbusDBTables.HOLDING_REGISTERS, sa, qor)) ||
 						(!IsAllRegistersPresent(unit_id, ModbusDBTables.HOLDING_REGISTERS, sa1, qor1)))
 					{
-						error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-						BuildExceptionMessage(send_buffer, mdbcode, error);
+						Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
+						BuildExceptionMessage(send_buffer, mdbcode, Error);
 						break;
 					}
 					bc = receive_buffer[9];
@@ -2132,7 +2075,7 @@ namespace Modbus
 					try
 					{
 						for (int ii = 0; ii < bc; ii += 2)
-							modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters[sa1 + (ii / 2)] = ToUInt16(receive_buffer.ToArray(), 10 + ii);
+							ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[sa1 + (ii / 2)] = ToUInt16(receive_buffer.ToArray(), 10 + ii);
 					}
 					catch
 					{
@@ -2145,7 +2088,7 @@ namespace Modbus
 					try
 					{
 						for (int ii = 0; ii < (qor * 2); ii += 2)
-							send_buffer.AddRange(GetBytes(modbus_db.Single(x => x.UnitID == unit_id).HoldingRegisters[sa + (ii / 2)]));
+							send_buffer.AddRange(GetBytes(ModbusDatabase.Single(x => x.UnitID == unit_id).HoldingRegisters[sa + (ii / 2)]));
 					}
 					catch
 					{
@@ -2155,8 +2098,8 @@ namespace Modbus
 					break;
 
 				default:
-					error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-					BuildExceptionMessage(send_buffer, mdbcode, error);
+					Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
+					BuildExceptionMessage(send_buffer, mdbcode, Error);
 					break;
 			}
 			// Send response
@@ -2171,7 +2114,7 @@ namespace Modbus
 		/// <param name="unit_id">Slave ID</param>
 		void SendReply(List<byte> send_buffer, object flux, byte unit_id, ushort transaction_id)
 		{
-			switch (connection_type)
+			switch (_connectionType)
 			{
 				case ConnectionType.SERIAL_ASCII:
 					// Add unit ID
@@ -2192,7 +2135,7 @@ namespace Modbus
 					// Enqueue CRC
 					send_buffer.AddRange(BitConverter.GetBytes(CRC16.CalcCRC16(send_buffer.ToArray(), 0, send_buffer.Count)));
 					// Wait for interframe delay
-					Thread.Sleep(interframe_delay);
+					Thread.Sleep(_interframeDelay);
 					break;
 
 				case ConnectionType.UDP_IP:
@@ -2220,12 +2163,12 @@ namespace Modbus
 	/// </summary>
 	public sealed class ModbusSlaveSerial : ModbusSlave
 	{
-		#region Instances
+		#region Fields
 
 		/// <summary>
 		/// Serial Port instance
 		/// </summary>
-		SerialPort sp;
+		SerialPort _serialPort;
 
 		#endregion
 
@@ -2249,63 +2192,57 @@ namespace Modbus
 			switch (type)
 			{
 				case ModbusSerialType.ASCII:
-					connection_type = ConnectionType.SERIAL_ASCII;
+					_connectionType = ConnectionType.SERIAL_ASCII;
 					break;
 
 				case ModbusSerialType.RTU:
-					connection_type = ConnectionType.SERIAL_RTU;
+					_connectionType = ConnectionType.SERIAL_RTU;
 					break;
 			}
 			// Set serial port instance
-			sp = new SerialPort(port, baudrate, parity, databits, stopbits);
-			sp.Handshake = handshake;
+			_serialPort = new SerialPort(port, baudrate, parity, databits, stopbits);
+			_serialPort.Handshake = handshake;
 			// Calc interframe delay
-			interframe_delay = GetInterframeDelay(sp);
+			_interframeDelay = GetInterframeDelay(_serialPort);
 			// Calc interchar delay
-			interchar_delay = GetIntercharDelay(sp);
+			_intercharDelay = GetIntercharDelay(_serialPort);
 		}
 
 		#endregion
 
-		#region Thread for gest incoming calls
-
 		/// <summary>
 		/// Thread for gest incoming calls
 		/// </summary>
-		protected override void GestRequests()
+		protected override void GuestRequests()
 		{
 			try
 			{
 				List<byte> send_buffer = new List<byte>();
 				List<byte> receive_buffer = new List<byte>();
-				while (run)
+				while (_run)
 				{
-					IncomingMessagePolling(send_buffer, receive_buffer, sp);
+					IncomingMessagePolling(send_buffer, receive_buffer, _serialPort);
 					Thread.Sleep(1);
 				}
 			}
 			catch { }
 		}
 
-		#endregion
-
-		#region Start and Stop functions
-
 		/// <summary>
 		/// Start listening function
 		/// </summary>
-		public override void StartListen()
+		public override void StartListening()
 		{
-			sp.Open();
-			if (sp.IsOpen)
+			_serialPort.Open();
+			if (_serialPort.IsOpen)
 			{
-				sp.DiscardInBuffer();
-				sp.DiscardOutBuffer();
-				if (gest_request == null)
+				_serialPort.DiscardInBuffer();
+				_serialPort.DiscardOutBuffer();
+				if (_guestRequest == null)
 				{
-					run = true;
-					gest_request = new Thread(GestRequests);
-					gest_request.Start();
+					_run = true;
+					_guestRequest = new Thread(GuestRequests);
+					_guestRequest.Start();
 				}
 			}
 		}
@@ -2313,22 +2250,20 @@ namespace Modbus
 		/// <summary>
 		/// Stop listening function
 		/// </summary>
-		public override void StopListen()
+		public override void StopListening()
 		{
-			if (gest_request != null)
+			if (_guestRequest != null)
 			{
-				run = false;
-				gest_request.Join();
-				gest_request = null;
+				_run = false;
+				_guestRequest.Join();
+				_guestRequest = null;
 			}
-			if (sp != null)
+			if (_serialPort != null)
 			{
-				if (sp.IsOpen)
-					sp.Close();
+				if (_serialPort.IsOpen)
+					_serialPort.Close();
 			}
 		}
-
-		#endregion
 	}
 
 	#endregion
@@ -2340,17 +2275,19 @@ namespace Modbus
 	/// </summary>
 	public sealed class ModbusSlaveTCP : ModbusSlave
 	{
-		#region Instances
+		#region Fields
+
+		private List<IPEndPoint> remote_clients_connected = new List<IPEndPoint>();
 
 		/// <summary>
 		/// Listener TCP
 		/// </summary>
-		TcpListener tcpl;
+		private TcpListener _tcpl;
 
 		/// <summary>
 		/// Manual reset event
 		/// </summary>
-		ManualResetEvent mre = new ManualResetEvent(false);
+		private ManualResetEvent _mre = new ManualResetEvent(false);
 
 		#endregion
 
@@ -2368,21 +2305,12 @@ namespace Modbus
 
 		#endregion
 
-		#region Parameters
+		#region Properties
 
 		/// <summary>
 		/// Connected clients
 		/// </summary>
-		public IPEndPoint[] RemoteClientsConnected
-		{
-			get { return remote_clients_connected.ToArray(); }
-		}
-
-		#endregion
-
-		#region Global Variables
-
-		List<IPEndPoint> remote_clients_connected = new List<IPEndPoint>();
+		public IPEndPoint[] RemoteClientsConnected => remote_clients_connected.ToArray();
 
 		#endregion
 
@@ -2398,9 +2326,9 @@ namespace Modbus
 			base(modbus_db)
 		{
 			// Set device states
-			connection_type = ConnectionType.TCP_IP;
+			_connectionType = ConnectionType.TCP_IP;
 			// Crete TCP listener
-			tcpl = new TcpListener(local_address, port);
+			_tcpl = new TcpListener(local_address, port);
 		}
 
 		#endregion
@@ -2420,7 +2348,9 @@ namespace Modbus
 			{
 				byte[] check_connection = new byte[1];
 				if (client.Client.Receive(check_connection, SocketFlags.Peek) == 0)
+				{
 					ret = false;
+				}
 			}
 
 			return ret;
@@ -2453,16 +2383,13 @@ namespace Modbus
 				// Fire event
 				ipe = (IPEndPoint)client.Client.RemoteEndPoint;
 				remote_clients_connected.Add(ipe);
-				EventHandler<ModbusTCPUDPClientConnectedEventArgs> con_handler =
-					TCPClientConnected;
-				if (con_handler != null)
-					con_handler(this, new ModbusTCPUDPClientConnectedEventArgs(ipe));
+				TCPClientConnected?.Invoke(this, new ModbusTCPUDPClientConnectedEventArgs(ipe));
 				// Set manual reset event
-				mre.Set();
+				_mre.Set();
 				// Get network stream
 				ns = client.GetStream();
 				// Processing incoming connections
-				while (run)
+				while (_run)
 				{
 					if (!IsClientConnected(client))
 						break;
@@ -2483,10 +2410,7 @@ namespace Modbus
 				if (ipe != null)
 				{
 					remote_clients_connected.Remove(ipe);
-					EventHandler<ModbusTCPUDPClientConnectedEventArgs> discon_handler =
-						TCPClientDisconnected;
-					if (discon_handler != null)
-						discon_handler(this, new ModbusTCPUDPClientConnectedEventArgs(ipe));
+					TCPClientDisconnected?.Invoke(this, new ModbusTCPUDPClientConnectedEventArgs(ipe));
 				}
 			}
 		}
@@ -2498,50 +2422,50 @@ namespace Modbus
 		/// <summary>
 		/// Corpo del thread del gestore delle chiamate in ingresso
 		/// </summary>
-		protected override void GestRequests()
+		protected override void GuestRequests()
 		{
-			while (run)
+			while (_run)
 			{
 				// Reset event
-				mre.Reset();
+				_mre.Reset();
 				// Async call to incoming connections
-				tcpl.BeginAcceptTcpClient(new AsyncCallback(DoAcceptTcpClientCallback), tcpl);
+				_tcpl.BeginAcceptTcpClient(new AsyncCallback(DoAcceptTcpClientCallback), _tcpl);
 				// Wait for event
-				mre.WaitOne();
+				_mre.WaitOne();
 			}
 		}
 
 		#endregion
 
-		#region Start and Stop functions
+		#region Start and Stop Methods
 
 		/// <summary>
 		/// Start listening
 		/// </summary>
-		public override void StartListen()
+		public override void StartListening()
 		{
-			tcpl.Start();
-			if (gest_request == null)
+			_tcpl.Start();
+			if (_guestRequest == null)
 			{
-				run = true;
-				gest_request = new Thread(GestRequests);
-				gest_request.Start();
+				_run = true;
+				_guestRequest = new Thread(GuestRequests);
+				_guestRequest.Start();
 			}
 		}
 
 		/// <summary>
 		/// Stop listening
 		/// </summary>
-		public override void StopListen()
+		public override void StopListening()
 		{
-			if (gest_request != null)
+			if (_guestRequest != null)
 			{
-				run = false;
-				mre.Set();
-				gest_request.Join();
-				gest_request = null;
+				_run = false;
+				_mre.Set();
+				_guestRequest.Join();
+				_guestRequest = null;
 			}
-			tcpl.Stop();
+			_tcpl.Stop();
 		}
 
 		#endregion
@@ -2556,31 +2480,27 @@ namespace Modbus
 	/// </summary>
 	public class ModbusMasterTCP : ModbusMaster
 	{
-		#region Global variables
+		#region Fields
 
 		/// <summary>
 		/// Remote hostname or IP address
 		/// </summary>
-		string _remote_host;
+		private string _remoteHost;
 
 		/// <summary>
 		/// Remote host Modbus TCP listening port
 		/// </summary>
-		int _port;
-
-		#endregion
-
-		#region Istances
+		readonly int _port;
 
 		/// <summary>
 		/// TCP Client
 		/// </summary>
-		TcpClient tcpc;
+		private TcpClient _tcpClient;
 
 		/// <summary>
 		/// Network stream
 		/// </summary>
-		NetworkStream ns;
+		private NetworkStream _networkStream;
 
 		#endregion
 
@@ -2589,57 +2509,51 @@ namespace Modbus
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="remote_host">Remote hostname or IP address</param>
+		/// <param name="remoteHost">Remote hostname or IP address</param>
 		/// <param name="port">Remote host Modbus TCP listening port</param>
-		public ModbusMasterTCP(string remote_host, int port)
+		public ModbusMasterTCP(string remoteHost, int port)
 		{
 			// Set device states
-			connection_type = ConnectionType.TCP_IP;
+			_connectionType = ConnectionType.TCP_IP;
 			// Set socket client
-			_remote_host = remote_host;
+			_remoteHost = remoteHost;
 			_port = port;
 		}
 
 		#endregion
 
-		#region Connect/Disconnect functions
-
 		/// <summary>
-		/// Connect function
+		/// Connect
 		/// </summary>
 		public override void Connect()
 		{
-			if (tcpc == null)
-				tcpc = new TcpClient();
-			tcpc.Connect(_remote_host, _port);
-			if (tcpc.Connected)
+			if (_tcpClient == null)
+				_tcpClient = new TcpClient();
+			_tcpClient.Connect(_remoteHost, _port);
+			if (_tcpClient.Connected)
 			{
-				ns = tcpc.GetStream();
-				connected = true;
+				_networkStream = _tcpClient.GetStream();
+				Connected = true;
 			}
 		}
 
 		/// <summary>
-		/// Disconnect function
+		/// Disconnect
 		/// </summary>
 		public override void Disconnect()
 		{
-			ns.Close();
-			tcpc.Close();
-			tcpc = null;
-			connected = false;
+			_networkStream.Close();
+			_tcpClient.Close();
+			_tcpClient = null;
+			Connected = false;
 		}
-
-		#endregion
-
-		#region Protocol functions
 
 		/// <summary>
 		/// Send trasmission buffer
 		/// </summary>
 		protected override void Send()
 		{
-			ns.Write(send_buffer.ToArray(), 0, send_buffer.Count);
+			_networkStream.Write(_sendBuffer.ToArray(), 0, _sendBuffer.Count);
 		}
 
 		/// <summary>
@@ -2648,13 +2562,11 @@ namespace Modbus
 		/// <returns>Readed byte or <c>-1</c> if there are any bytes</returns>
 		protected override int ReceiveByte()
 		{
-			if (ns.DataAvailable)
-				return ns.ReadByte();
+			if (_networkStream.DataAvailable)
+				return _networkStream.ReadByte();
 			else
 				return -1;
 		}
-
-		#endregion
 	}
 
 	#endregion
@@ -2666,17 +2578,17 @@ namespace Modbus
 	/// </summary>
 	public sealed class ModbusSlaveUDP : ModbusSlave
 	{
-		#region Instances
+		#region Fields
 
 		/// <summary>
 		/// UDP Listener
 		/// </summary>
-		UdpClient udpl;
+		UdpClient _udpListener;
 
 		/// <summary>
 		/// Manual reset event
 		/// </summary>
-		ManualResetEvent mre = new ManualResetEvent(false);
+		ManualResetEvent _manualResetEvent = new ManualResetEvent(false);
 
 		#endregion
 
@@ -2692,14 +2604,12 @@ namespace Modbus
 			base(modbus_db)
 		{
 			// Set device states
-			connection_type = ConnectionType.UDP_IP;
+			_connectionType = ConnectionType.UDP_IP;
 			// Create UDP listener
-			udpl = new UdpClient(new IPEndPoint(local_address, port));
+			_udpListener = new UdpClient(new IPEndPoint(local_address, port));
 		}
 
 		#endregion
-
-		#region Incoming connections callback
 
 		/// <summary>
 		/// Incoming connection callback
@@ -2724,7 +2634,7 @@ namespace Modbus
 				// Istance UDPData class
 				udp_data = new UDPData(listener, rx_buffer, remote_ep);
 				// Set event
-				mre.Set();
+				_manualResetEvent.Set();
 				// Process incoming call
 				IncomingMessagePolling(send_buffer, receive_buffer, udp_data);
 			}
@@ -2736,58 +2646,48 @@ namespace Modbus
 			}
 		}
 
-		#endregion
-
-		#region Incoming call process thread
-
 		/// <summary>
 		/// Incoming call process thread
 		/// </summary>
-		protected override void GestRequests()
+		protected override void GuestRequests()
 		{
-			while (run)
+			while (_run)
 			{
 				// Reset event
-				mre.Reset();
+				_manualResetEvent.Reset();
 				// Async call to process callback
-				udpl.BeginReceive(new AsyncCallback(DoAcceptUdpDataCallback), udpl);
+				_udpListener.BeginReceive(new AsyncCallback(DoAcceptUdpDataCallback), _udpListener);
 				// wait for event
-				mre.WaitOne();
+				_manualResetEvent.WaitOne();
 			}
 		}
-
-		#endregion
-
-		#region Start and Stop functions
 
 		/// <summary>
 		/// Start listen
 		/// </summary>
-		public override void StartListen()
+		public override void StartListening()
 		{
-			if (gest_request == null)
+			if (_guestRequest == null)
 			{
-				run = true;
-				gest_request = new Thread(GestRequests);
-				gest_request.Start();
+				_run = true;
+				_guestRequest = new Thread(GuestRequests);
+				_guestRequest.Start();
 			}
 		}
 
 		/// <summary>
 		/// Stop listen
 		/// </summary>
-		public override void StopListen()
+		public override void StopListening()
 		{
-			if (gest_request != null)
+			if (_guestRequest != null)
 			{
-				run = false;
-				gest_request.Join();
-				gest_request = null;
+				_run = false;
+				_guestRequest.Join();
+				_guestRequest = null;
 			}
-			udpl.Close();
+			_udpListener.Close();
 		}
-
-		#endregion
 	}
 
 	#endregion
@@ -2799,31 +2699,27 @@ namespace Modbus
 	/// </summary>
 	public class ModbusMasterUDP : ModbusMaster
 	{
-		#region Global variables
+		#region Fields
 
 		/// <summary>
 		/// Remote hostname or IP address
 		/// </summary>
-		string _remote_host;
+		private string _remoteHost;
 
 		/// <summary>
 		/// Remote Modbus TCP port
 		/// </summary>
-		int _port;
+		private int _port;
 
 		/// <summary>
 		/// Temporary receive buffer
 		/// </summary>
-		List<byte> tmp_rx_buffer = new List<byte>();
-
-		#endregion
-
-		#region Instances
+		private List<byte> _tmpRxBuffer = new List<byte>();
 
 		/// <summary>
 		/// UDP Client
 		/// </summary>
-		UdpClient udpc;
+		private UdpClient _udpClient;
 
 		#endregion
 
@@ -2837,25 +2733,23 @@ namespace Modbus
 		public ModbusMasterUDP(string remote_host, int port)
 		{
 			// Set device states
-			connection_type = ConnectionType.UDP_IP;
+			_connectionType = ConnectionType.UDP_IP;
 			// Set socket client
-			_remote_host = remote_host;
+			_remoteHost = remote_host;
 			_port = port;
-			udpc = new UdpClient();
+			_udpClient = new UdpClient();
 		}
 
 		#endregion
-
-		#region Connect / Disconnect functions
 
 		/// <summary>
 		/// Connect function
 		/// </summary>
 		public override void Connect()
 		{
-			udpc.Connect(_remote_host, _port);
-			if (udpc.Client.Connected)
-				connected = true;
+			_udpClient.Connect(_remoteHost, _port);
+			if (_udpClient.Client.Connected)
+				Connected = true;
 		}
 
 		/// <summary>
@@ -2863,20 +2757,16 @@ namespace Modbus
 		/// </summary>
 		public override void Disconnect()
 		{
-			udpc.Close();
-			connected = false;
+			_udpClient.Close();
+			Connected = false;
 		}
-
-		#endregion
-
-		#region Protocol functions
 
 		/// <summary>
 		/// Send trasmission buffer
 		/// </summary>
 		protected override void Send()
 		{
-			udpc.Send(send_buffer.ToArray(), send_buffer.Count);
+			_udpClient.Send(_sendBuffer.ToArray(), _sendBuffer.Count);
 		}
 
 		/// <summary>
@@ -2888,24 +2778,22 @@ namespace Modbus
 			IPEndPoint ipe = new IPEndPoint(IPAddress.Any, 0);
 
 			// Check if there are available bytes
-			if (udpc.Available > 0)
+			if (_udpClient.Available > 0)
 			{
 				// Enqueue bytes to temporary rx buffer
-				tmp_rx_buffer.AddRange(udpc.Receive(ref ipe));
+				_tmpRxBuffer.AddRange(_udpClient.Receive(ref ipe));
 			}
 
-			if (tmp_rx_buffer.Count > 0)
+			if (_tmpRxBuffer.Count > 0)
 			{
 				// There are available bytes in temporary rx buffer, read the first and delete it
-				byte ret = tmp_rx_buffer[0];
-				tmp_rx_buffer.RemoveAt(0);
+				byte ret = _tmpRxBuffer[0];
+				_tmpRxBuffer.RemoveAt(0);
 				return ret;
 			}
 			else
 				return -1;
 		}
-
-		#endregion
 	}
 
 	#endregion
@@ -2917,21 +2805,17 @@ namespace Modbus
 	/// </summary>
 	public sealed class ModbusMasterSerial : ModbusMaster
 	{
-		#region Instances
+		#region Fields
 
 		/// <summary>
 		/// Serial port instance
 		/// </summary>
-		SerialPort _serialPort;
-
-		#endregion
-
-		#region Global Variables
+		private SerialPort _serialPort;
 
 		/// <summary>
 		/// Char timeout
 		/// </summary>
-		long char_tmo;
+		private long _charTimeout;
 
 		#endregion
 
@@ -2953,25 +2837,23 @@ namespace Modbus
 			switch (type)
 			{
 				case ModbusSerialType.RTU:
-					connection_type = ConnectionType.SERIAL_RTU;
+					_connectionType = ConnectionType.SERIAL_RTU;
 					break;
 
 				case ModbusSerialType.ASCII:
-					connection_type = ConnectionType.SERIAL_ASCII;
+					_connectionType = ConnectionType.SERIAL_ASCII;
 					break;
 			}
 			// Set serial port instance
 			_serialPort = new SerialPort(port, baudrate, parity, databits, stopbits);
 			_serialPort.Handshake = handshake;
 			// Get interframe delay
-			interframe_delay = GetInterframeDelay(_serialPort);
+			_interframeDelay = GetInterframeDelay(_serialPort);
 			// Get interchar delay
-			interchar_delay = GetIntercharDelay(_serialPort);
+			_intercharDelay = GetIntercharDelay(_serialPort);
 		}
 
 		#endregion
-
-		#region Connect / Disconnect functions
 
 		/// <summary>
 		/// Connect function
@@ -2983,7 +2865,7 @@ namespace Modbus
 			{
 				_serialPort.DiscardInBuffer();
 				_serialPort.DiscardOutBuffer();
-				connected = true;
+				Connected = true;
 			}
 		}
 
@@ -2993,21 +2875,17 @@ namespace Modbus
 		public override void Disconnect()
 		{
 			_serialPort.Close();
-			connected = false;
+			Connected = false;
 		}
-
-		#endregion
-
-		#region Protocol functions
 
 		/// <summary>
 		/// Send trasmission buffer
 		/// </summary>
 		protected override void Send()
 		{
-			_serialPort.Write(send_buffer.ToArray(), 0, send_buffer.Count);
+			_serialPort.Write(_sendBuffer.ToArray(), 0, _sendBuffer.Count);
 			// Reset timeout counter
-			char_tmo = 0;
+			_charTimeout = 0;
 		}
 
 		/// <summary>
@@ -3017,30 +2895,28 @@ namespace Modbus
 		protected override int ReceiveByte()
 		{
 			bool done = false;
-			int ret_val;
+			int value;
 
 			// Await 1 char...
-			if (!sw_ch.IsRunning)
-				sw_ch.Start();
+			if (!_timeoutStopwatch.IsRunning)
+				_timeoutStopwatch.Start();
 
 			do
 			{
 				if (_serialPort.BytesToRead > 0)
 				{
-					ret_val = _serialPort.ReadByte();
+					value = _serialPort.ReadByte();
 					done = true;
 				}
 				else
-					ret_val = -1;
-			} while ((!done) && ((sw_ch.ElapsedMilliseconds - char_tmo) < interchar_delay));
+					value = -1;
+			} while ((!done) && ((_timeoutStopwatch.ElapsedMilliseconds - _charTimeout) < _intercharDelay));
 
 			if (done)
-				char_tmo = sw_ch.ElapsedMilliseconds;   // Char received with no errors...reset timeout counter for next char!
+				_charTimeout = _timeoutStopwatch.ElapsedMilliseconds;   // Char received with no errors...reset timeout counter for next char!
 
-			return ret_val;
+			return value;
 		}
-
-		#endregion
 	}
 
 	#endregion
@@ -3052,22 +2928,31 @@ namespace Modbus
 	/// </summary>
 	class UDPData
 	{
-		#region Global variables
+		#region Fields
 
 		/// <summary>
 		/// Input stream
 		/// </summary>
-		MemoryStream ms;
+		MemoryStream _inputStream;
 
 		/// <summary>
 		/// UDP Client
 		/// </summary>
-		UdpClient client;
+		UdpClient _client;
 
 		/// <summary>
 		/// Remote endpoint
 		/// </summary>
-		IPEndPoint remote_ep;
+		IPEndPoint _remoteEndPoint;
+
+		#endregion
+
+		#region Properties
+
+		/// <summary>
+		/// Get stream length
+		/// </summary>
+		public long Length => _inputStream.Length;
 
 		#endregion
 
@@ -3081,26 +2966,12 @@ namespace Modbus
 		/// <param name="remote_endpoint">Remote endpoint</param>
 		public UDPData(UdpClient udp_client, byte[] rx_data, IPEndPoint remote_endpoint)
 		{
-			client = udp_client;
-			remote_ep = remote_endpoint;
-			ms = new MemoryStream(rx_data);
+			_client = udp_client;
+			_remoteEndPoint = remote_endpoint;
+			_inputStream = new MemoryStream(rx_data);
 		}
 
 		#endregion
-
-		#region Parameters
-
-		/// <summary>
-		/// Get stream length
-		/// </summary>
-		public long Length
-		{
-			get { return ms.Length; }
-		}
-
-		#endregion
-
-		#region Class functions
 
 		/// <summary>
 		/// Read a byte from input stream
@@ -3108,7 +2979,7 @@ namespace Modbus
 		/// <returns>Readed byte or <c>-1</c> if there are any bytes</returns>
 		public int ReadByte()
 		{
-			return ms.ReadByte();
+			return _inputStream.ReadByte();
 		}
 
 		/// <summary>
@@ -3121,7 +2992,7 @@ namespace Modbus
 		{
 			byte[] tmp_buffer = new byte[size];
 			Buffer.BlockCopy(buffer, offset, tmp_buffer, 0, size);
-			client.Send(tmp_buffer, size, remote_ep);
+			_client.Send(tmp_buffer, size, _remoteEndPoint);
 		}
 
 		/// <summary>
@@ -3129,11 +3000,9 @@ namespace Modbus
 		/// </summary>
 		public void Close()
 		{
-			if (ms != null)
-				ms.Close();
+			if (_inputStream != null)
+				_inputStream.Close();
 		}
-
-		#endregion
 	}
 
 	#endregion
@@ -3150,85 +3019,36 @@ namespace Modbus
 		/// <summary>
 		/// Max DB elements
 		/// </summary>
-		const int MAX_ELEMENTS = 65536;
+		private const int MAX_ELEMENTS = 65536;
 
 		#endregion
 
-		#region Modbus database
-
-		/// <summary>
-		/// Discrete Inputs - Read Only - 1 bit
-		/// </summary>
-		bool[] discrete_inputs;
-
-		/// <summary>
-		/// Coils - Read/Write - 1 bit
-		/// </summary>
-		bool[] coils;
-
-		/// <summary>
-		/// Input registers - Read Only - 16 bit
-		/// </summary>
-		ushort[] input_registers;
-
-		/// <summary>
-		/// Holding registers - Read/Write - 16 bit
-		/// </summary>
-		ushort[] holding_registers;
-
-		/// <summary>
-		/// Device ID
-		/// </summary>
-		byte unit_id;
-
-		#endregion
-
-		#region Parameters
+		#region Properties
 
 		/// <summary>
 		/// Dicrete Input registers (read-only - 1 bit)
 		/// </summary>
-		public bool[] DiscreteInputs
-		{
-			get { return discrete_inputs; }
-			set { discrete_inputs = value; }
-		}
+		public bool[] DiscreteInputs { get; set; }
 
 		/// <summary>
 		/// Coils registers (read/write - 1 bit)
 		/// </summary>
-		public bool[] Coils
-		{
-			get { return coils; }
-			set { coils = value; }
-		}
+		public bool[] Coils { get; set; }
 
 		/// <summary>
 		/// Input registers (read-only - 16 bit)
 		/// </summary>
-		public ushort[] InputRegisters
-		{
-			get { return input_registers; }
-			set { input_registers = value; }
-		}
+		public ushort[] InputRegisters { get; set; }
 
 		/// <summary>
 		/// Holding registers (read/write - 16 bit)
 		/// </summary>
-		public ushort[] HoldingRegisters
-		{
-			get { return holding_registers; }
-			set { holding_registers = value; }
-		}
+		public ushort[] HoldingRegisters { get; set; }
 
 		/// <summary>
 		/// Device ID
 		/// </summary>
-		public byte UnitID
-		{
-			get { return unit_id; }
-			set { unit_id = value; }
-		}
+		public byte UnitID { get; set; }
 
 		#endregion
 
@@ -3245,17 +3065,17 @@ namespace Modbus
 		public Datastore(byte uid, int n_discrete_inputs, int n_coils, int n_input_registers, int n_holding_registers)
 		{
 			// Set device ID
-			unit_id = uid;
+			UnitID = uid;
 			// Validate values and set db length
 			if (((n_discrete_inputs >= 0) && (n_discrete_inputs <= MAX_ELEMENTS)) &&
 				((n_coils >= 0) && (n_coils <= MAX_ELEMENTS)) &&
 				((n_input_registers >= 0) && (n_input_registers <= MAX_ELEMENTS)) &&
 				((n_holding_registers >= 0) && (n_holding_registers <= MAX_ELEMENTS)))
 			{
-				discrete_inputs = new bool[n_discrete_inputs];
-				coils = new bool[n_coils];
-				input_registers = new ushort[n_input_registers];
-				holding_registers = new ushort[n_holding_registers];
+				DiscreteInputs = new bool[n_discrete_inputs];
+				Coils = new bool[n_coils];
+				InputRegisters = new ushort[n_input_registers];
+				HoldingRegisters = new ushort[n_holding_registers];
 			}
 			else
 				throw new Exception("Database definition wrong , each set of records must be between 0 and e " + MAX_ELEMENTS.ToString() + "!");
@@ -3269,12 +3089,12 @@ namespace Modbus
 		public Datastore(byte uid)
 		{
 			// Set device ID
-			unit_id = uid;
+			UnitID = uid;
 			// Set DB length
-			discrete_inputs = new bool[MAX_ELEMENTS];
-			coils = new bool[MAX_ELEMENTS];
-			input_registers = new ushort[MAX_ELEMENTS];
-			holding_registers = new ushort[MAX_ELEMENTS];
+			DiscreteInputs = new bool[MAX_ELEMENTS];
+			Coils = new bool[MAX_ELEMENTS];
+			InputRegisters = new ushort[MAX_ELEMENTS];
+			HoldingRegisters = new ushort[MAX_ELEMENTS];
 		}
 
 		#endregion
