@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Globalization;
-using System.IO;
-using System.IO.Ports;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.Threading;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO.Ports;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
 using Modbus;
 
 namespace ModbusGUI
 {
 	public partial class Modbusgui : Form
 	{
-		// Data types that can be transmitted by MODBUS
+		#region Enumerations
+
+		/// <summary>
+		/// Data types that can be transmitted by MODBUS
+		/// </summary>
 		enum DataType
 		{
 			None,
@@ -29,14 +28,18 @@ namespace ModbusGUI
 			String,
 		}
 
-		// Types of registers that MODBUS can use
+		/// <summary>
+		/// Types of registers that MODBUS can use
+		/// </summary>
 		enum MBRegisterType
 		{
 			Input,
 			Holding,
 		}
 
-		// Types of MODBUS transactions
+		/// <summary>
+		/// Types of MODBUS transactions
+		/// </summary>
 		enum MBActionType
 		{
 			Read,
@@ -44,8 +47,16 @@ namespace ModbusGUI
 			WriteSingle,
 		}
 
-		ModbusMasterSerial mbMaster = null;
-		Thread pollThread = null;
+		#endregion
+
+		#region Fields
+
+		private ModbusMasterSerial _mbMaster = null;
+		private Thread _pollThread = null;
+
+		#endregion
+
+		#region Constructor
 
 		/// <summary>
 		/// Runs when the GUI loads.
@@ -55,22 +66,26 @@ namespace ModbusGUI
 			InitializeComponent();
 
 			// Set some default settings.
-			this.modeCb.SelectedIndex = 0;
-			this.parityCb.SelectedIndex = 0;
-			this.baudCb.SelectedIndex = 0;
-			this.stopBitsCb.SelectedIndex = 0;
+			comboBoxMode.SelectedIndex = 0;
+			comboBoxParity.SelectedIndex = 0;
+			comboBoxBaudRate.SelectedIndex = 0;
+			comboBoxStopBits.SelectedIndex = 0;
 
-			// Retrieve System Serial port names.
-			this.comPortCb.Items.AddRange(SerialPort.GetPortNames());
+			// Populate serial port names.
+			comboBoxSerialPort.Items.AddRange(SerialPort.GetPortNames());
 
-			// Set the control values.
-			comPortCb.Text = Properties.Settings.Default.Port;
-			baudCb.Text = Properties.Settings.Default.BaudRate.ToString();
-			parityCb.Text = Properties.Settings.Default.Parity;
-			stopBitsCb.Text = Properties.Settings.Default.StopBits.ToString();
-			modeCb.Text = Properties.Settings.Default.Mode;
-			slaveAddrTb.Text = Properties.Settings.Default.Address.ToString();
+			// Set the control values to the previously saved selections.
+			comboBoxSerialPort.Text = Properties.Settings.Default.Port;
+			comboBoxBaudRate.Text = Properties.Settings.Default.BaudRate.ToString();
+			comboBoxParity.Text = Properties.Settings.Default.Parity;
+			comboBoxStopBits.Text = Properties.Settings.Default.StopBits.ToString();
+			comboBoxMode.Text = Properties.Settings.Default.Mode;
+			textBoxSlaveAddr.Text = Properties.Settings.Default.Address.ToString();
 		}
+
+		#endregion
+
+		#region Form Closing Methods
 
 		/// <summary>
 		/// Runs when the GUI is closed.
@@ -80,18 +95,18 @@ namespace ModbusGUI
 		private void Form1_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			// Dispose of the MODBUS class.
-			if (mbMaster != null)
+			if (_mbMaster != null)
 			{
-				this.mbMaster.Disconnect();
+				_mbMaster.Disconnect();
 			}
 
 			// Save settings used by the program.
-			Properties.Settings.Default.Port = comPortCb.Text;
-			Properties.Settings.Default.BaudRate = Convert.ToUInt16(baudCb.Text);
-			Properties.Settings.Default.Parity = parityCb.Text;
-			Properties.Settings.Default.StopBits = Convert.ToUInt16(stopBitsCb.Text);
-			Properties.Settings.Default.Mode = modeCb.Text;
-			Properties.Settings.Default.Address = Convert.ToUInt16(slaveAddrTb.Text);
+			Properties.Settings.Default.Port = comboBoxSerialPort.Text;
+			Properties.Settings.Default.BaudRate = Convert.ToUInt16(comboBoxBaudRate.Text);
+			Properties.Settings.Default.Parity = comboBoxParity.Text;
+			Properties.Settings.Default.StopBits = Convert.ToUInt16(comboBoxStopBits.Text);
+			Properties.Settings.Default.Mode = comboBoxMode.Text;
+			Properties.Settings.Default.Address = Convert.ToUInt16(textBoxSlaveAddr.Text);
 
 			// Store the current values of the application settings properties.
 			// If this call is omitted, then the settings will not be saved after the program quits.
@@ -103,66 +118,336 @@ namespace ModbusGUI
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+		private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			this.Close();
+			Close();
 		}
 
+		#endregion
+
+		#region Serial Port Methods
+
 		/// <summary>
-		/// Formats the contents of the address textbox.
+		/// When the user clicks the Refresh Button, find serial ports.
+		/// Refreshes the COM ports available to the user.
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void slaveAddrTb_Leave(object sender, EventArgs e)
+		private void ButtonPortRefresh_Click(object sender, EventArgs e)
 		{
-			string contents = this.slaveAddrTb.Text;
+			comboBoxSerialPort.Items.Clear();
+			comboBoxSerialPort.SelectedIndex = -1;
+			comboBoxSerialPort.Text = "";
+			comboBoxSerialPort.Items.AddRange(SerialPort.GetPortNames());
+		}
 
-			// Remmove leading and trailing whitespace from text.
+		/// <summary>
+		/// When the user selects a radio button, open or close the serial port.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void RadioButton_CheckedChanged(object sender, EventArgs e)
+		{
+			// Do stuff only if the radio button is checked.
+			// (Otherwise the actions will run twice.)
+			if (((RadioButton)sender).Checked)
+			{
+				try
+				{
+					// If the "Open" radio button has been checked...
+					if (((RadioButton)sender) == radioButtonOpen)
+					{
+						// Alert the user.
+						toolStripStatusLabel1.Text = "Opening serial port...";
+
+						// If the MODBUS object exists (i.e. the port is open)...
+						if (_mbMaster != null)
+						{
+							// Discard the MODBUS object (close the port).
+							_mbMaster.Disconnect();
+							_mbMaster = null;
+
+							// Enable the MODBUS configuration controls.
+							comboBoxSerialPort.Enabled = true;
+							comboBoxBaudRate.Enabled = true;
+							comboBoxParity.Enabled = true;
+							comboBoxMode.Enabled = true;
+							comboBoxStopBits.Enabled = true;
+
+							// Disable the MODBUS read/write/poll buttons.
+							buttonInputRegisterRead.Enabled = false;
+							buttonInputRegisterPoll.Enabled = false;
+							buttonHoldingRegisterRead.Enabled = false;
+							buttonHoldingRegisterWrite.Enabled = false;
+							buttonCoilRead.Enabled = false;
+							buttonCoilWrite.Enabled = false;
+						}
+						// If the MODBUS port is closed...
+						else
+						{
+							// Fetch the user's MODBUS configuration selections.
+							object portName = comboBoxSerialPort.SelectedItem;
+							object baudName = comboBoxBaudRate.SelectedItem;
+							object parityName = comboBoxParity.SelectedItem;
+							object mbMode = comboBoxMode.SelectedItem;
+							object stopBits = comboBoxStopBits.SelectedItem;
+
+							// Check for invalid configuration selections.
+							if (portName == null)
+							{
+								ShowError("Serial Port not selected.");
+							}
+							else if (baudName == null)
+							{
+								ShowError("Baud Rate not selected.");
+							}
+							else if (parityName == null)
+							{
+								ShowError("Parity type not selected");
+							}
+							else if (mbMode == null)
+							{
+								ShowError("Modbus Mode not selected");
+							}
+							else if (stopBits == null)
+							{
+								ShowError("Stop Bits not selected");
+							}
+							// If the settings seem valid...
+							else
+							{
+								// Convert the baud rate to an integer.
+								int baudRate = int.Parse(baudName.ToString());
+
+								// Convert stop bits string to comm port setting.
+								StopBits stopbits = StopBits.One;
+								if (stopBits.ToString() == "2")
+								{
+									stopbits = StopBits.Two;
+								}
+
+								// Convert parity string to comm port setting.
+								Parity parity = Parity.Even;
+								if (parityName.ToString() == "None")
+								{
+									parity = Parity.None;
+								}
+								else if (parityName.ToString() == "Odd")
+								{
+									parity = Parity.Odd;
+								}
+
+								// Select the MODBUS packet size based on the selected mode.
+								int datasize = 8;
+								if (mbMode.ToString() == "ASCII")
+								{
+									datasize = 7;
+								}
+
+								// Select the MODBUS mode.
+								ModbusSerialType mode = ModbusSerialType.RTU;
+								if (mbMode.ToString() == "ASCII")
+								{
+									mode = ModbusSerialType.ASCII;
+								}
+
+								// Create and open serial port.
+								try
+								{
+									_mbMaster = new ModbusMasterSerial(mode, portName.ToString(), baudRate, datasize, parity, stopbits, Handshake.None);
+									_mbMaster.Connect();
+
+									// Disable the controls for MODBUS configuration settings.
+									comboBoxSerialPort.Enabled = false;
+									comboBoxBaudRate.Enabled = false;
+									comboBoxParity.Enabled = false;
+									comboBoxMode.Enabled = false;
+									comboBoxStopBits.Enabled = false;
+
+									// Enable the MODBUS read/write/poll buttons.
+									buttonInputRegisterRead.Enabled = true;
+									buttonInputRegisterPoll.Enabled = true;
+									buttonHoldingRegisterRead.Enabled = true;
+									buttonHoldingRegisterWrite.Enabled = true;
+									buttonCoilRead.Enabled = true;
+									buttonCoilWrite.Enabled = true;
+								}
+								catch (Exception exp)
+								{
+									ShowError("Unable to open serial port\n\n" + exp.ToString());
+								}
+							}
+						}
+
+						// Update the user interface.
+						comboBoxSerialPort.Enabled = false;
+						buttonPortRefresh.Enabled = false;
+						groupBoxCommunication.Enabled = true;
+						toolStripStatusLabel1.Text = "Port open.";
+					}
+					else if (((RadioButton)sender) == radioButtonClosed)
+					{
+						// Alert the user.
+						toolStripStatusLabel1.Text = "Closing serial port...";
+
+						// Dispose of the MODBUS class.
+						if (_mbMaster != null)
+						{
+							_mbMaster.Disconnect();
+						}
+
+						// Update user interface.
+						comboBoxSerialPort.Enabled = true;
+						buttonPortRefresh.Enabled = true;
+						groupBoxCommunication.Enabled = false;
+						toolStripStatusLabel1.Text = "Port closed.";
+					}
+				}
+				// If an error occurs...
+				catch (Exception ex)
+				{
+					// Alert the user.
+					MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
+
+					// Undo the user action.
+					radioButtonClosed.Checked = true;
+				}
+			}
+		}
+
+		#endregion
+
+		#region Slave Address Methods
+
+		/// <summary>
+		/// When the user finishes typing the slave address, format the text.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void TextBoxSlaveAddr_Leave(object sender, EventArgs e)
+		{
+			// Fetch what the user typed.
+			string contents = textBoxSlaveAddr.Text;
+
+			// Remmove leading and trailing whitespace.
 			contents = contents.Trim();
 
-			// Remove "0x" from text if it's there.
+			// If there's a leading "0x"...
 			if (contents.StartsWith("0x"))
 			{
+				// Remove it.
 				contents = contents.Substring(2);
-				this.slaveAddrTb.Text = contents;
+				textBoxSlaveAddr.Text = contents;
 			}
 		}
 
-		private void FormatCb_SelectedIndexChanged(object sender, EventArgs e)
+		/// <summary>
+		/// Read and format the slave device address.
+		/// </summary>
+		/// <returns></returns>
+		private byte GetSlaveAddress()
 		{
-			ComboBox formatCb = (ComboBox)sender;
-			
-			// Find the corresponding "String Length" textbox.
-			TextBox stringLengthTextBox = this.inputRegStringLenTb;
-			if (formatCb.Equals(this.holdingRegFormatCb))
+			byte address = 0;
+			bool status;
+
+			try
 			{
-				stringLengthTextBox = this.holdingRegStringLenTb;
+				// Parse the address the user has entered.
+				status = byte.TryParse(textBoxSlaveAddr.Text, NumberStyles.HexNumber,
+										CultureInfo.InvariantCulture, out address);
+
+				// If the text is not a number...
+				if (status == false)
+				{
+					// Alert the user.
+					ShowError("Invalid Slave Address");
+				}
+				// If the number is out of range...
+				else if ((address < 1) || (address > 247))
+				{
+					// Alert the user.
+					ShowError("Slave Address Must be between 1 and 247");
+
+					// Set the address to something valid.
+					address = 0;
+				}
+			}
+			catch (Exception exp)
+			{
+				ShowError(exp.ToString());
 			}
 
-			// Check for empty string.
-			if (formatCb.SelectedItem == null)
-			{
-				// Do nothing.
-			}
-
-			// If the selected format is "String"...
-			else if (formatCb.SelectedItem.ToString() == "String")
-			{
-				// Enable the "String Length" textbox.
-				stringLengthTextBox.Enabled = true;
-			}
-
-			// If any other format is selected...
-			else
-			{
-				// Disable the "String Length" textbox.
-				stringLengthTextBox.Enabled = false;
-			}
-
-
+			return address;
 		}
 
-		private DataType GetDataFormat(ComboBox cb, out UInt16 numRegs, TextBox tb = null)
+		#endregion
+
+		#region Shared Methods
+
+		/// <summary>
+		/// Fetch the coil or register address from the form.
+		/// </summary>
+		/// <param name="tb"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		private bool GetRegisterAddr(TextBox tb, out ushort value)
+		{
+			value = 0;
+			bool retval = false;
+
+			try
+			{
+				// Try to read the 
+				retval = ushort.TryParse(tb.Text, out value);
+				if (retval == false)
+				{
+					ShowError("Invalid Register Address");
+				}
+			}
+			catch (Exception exp)
+			{
+				ShowError(exp.ToString());
+			}
+
+			return retval;
+		}
+
+		/// <summary>
+		/// When the "Data Format" combo box is changed, enable or disable the
+		/// string length textbox depending on whether "string" has been selected.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ComboBoxFormat_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			ComboBox comboBoxDataFormat = (ComboBox)sender;
+
+			// Find the corresponding "String Length" textbox.
+			TextBox stringLengthTextBox = textBoxInputRegisterStringLength;
+			if (comboBoxDataFormat.Equals(comboBoxHoldingRegisterFormat))
+			{
+				stringLengthTextBox = textBoxHoldingRegisterStringLength;
+			}
+
+			// If the user has selected a data format...
+			if (comboBoxDataFormat.SelectedItem != null)
+			{
+				// If the selected format is "String"...
+				if (comboBoxDataFormat.SelectedItem.ToString() == "String")
+				{
+					// Enable the "String Length" textbox.
+					stringLengthTextBox.Enabled = true;
+				}
+				// If any other format is selected...
+				else
+				{
+					// Disable the "String Length" textbox.
+					stringLengthTextBox.Enabled = false;
+				}
+			}
+		}
+
+		private DataType GetDataFormat(ComboBox cb, out ushort numRegs, TextBox tb = null)
 		{
 			DataType type = DataType.None;
 			numRegs = 1;
@@ -173,7 +458,7 @@ namespace ModbusGUI
 			// Check for empty string.
 			if (format_str == null)
 			{
-				this.ShowError("No format selected");
+				ShowError("No format selected");
 				return type;
 			}
 
@@ -207,7 +492,7 @@ namespace ModbusGUI
 				}
 				catch (Exception exp)
 				{
-					this.ShowError("Please enter a valid string length in bytes: " + exp.ToString());
+					ShowError("Please enter a valid string length in bytes: " + exp.ToString());
 					type = DataType.None;
 				}
 			}
@@ -219,297 +504,179 @@ namespace ModbusGUI
 			return type;
 		}
 
+		#endregion
+
+		#region Input Register Methods
+
 		/// <summary>
-		/// Runs when the user clicks the refresh Button in the GUI.
-		/// Refreshes the COM ports available to the user.
+		/// When the Input Register "Read" button is clicked.
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void portRefreshBtn_Click(object sender, EventArgs e)
+		private void ButtonInputRegisterRead_Click(object sender, EventArgs e)
 		{
-			this.comPortCb.Items.Clear();
-			this.comPortCb.SelectedIndex = -1;
-			this.comPortCb.Text = "";
-			this.comPortCb.Items.AddRange(SerialPort.GetPortNames());
+
+			byte slaveAddr = GetSlaveAddress();
+			if (slaveAddr == 0)
+			{
+				return;
+			}
+
+			if (GetRegisterAddr(textBoxInputRegisterAddress, out ushort regAddr) == false)
+			{
+				return;
+			}
+
+			DataType dataType = GetDataFormat(comboBoxInputRegisterFormat, out ushort numRegs, textBoxInputRegisterStringLength);
+			if (dataType == DataType.None)
+			{
+				return;
+			}
+
+			if (ReadWriteRegisters(MBRegisterType.Input, MBActionType.Read, slaveAddr, regAddr, numRegs,
+										null, out ushort[] regValues, out string err_str) == false)
+			{
+				ShowError("Could not read Input Register");
+				return;
+			}
+			DisplayData(textBoxInputRegisterData, dataType, regValues);
+
+			toolStripStatusLabel1.Text = "Input Register Read Successfully";
 		}
 
 		/// <summary>
-		/// Runs when the user clicks the Open button in the GUI.
+		/// When the Input Register "Poll" button is clicked.
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void portOpenBtn_Click(object sender, EventArgs e)
+		private void ButtonInputPoll_Click(object sender, EventArgs e)
 		{
-			// If the MODBUS object exists (i.e. the port is open)...
-			if (mbMaster != null)
+			if (_pollThread == null)
 			{
-				// Discard the MODBUS object (close the port).
-				this.mbMaster.Disconnect();
-				this.mbMaster = null;
-
-				// Enable the MODBUS configuration controls.
-				this.comPortCb.Enabled  = true;
-				this.baudCb.Enabled     = true;
-				this.parityCb.Enabled   = true;
-				this.modeCb.Enabled     = true;
-				this.stopBitsCb.Enabled = true;
-
-				// Disable the MODBUS read/write/poll buttons.
-				this.inputRegReadBtn.Enabled = false;
-				this.inputPollBtn.Enabled = false;
-				this.holdingRegReadBtn.Enabled = false;
-				this.holdingRegWriteBtn.Enabled = false;
-				this.coilReadBtn.Enabled = false;
-				this.coilWriteBtn.Enabled = false;
-
-				// Change the text on the Open/Close button.
-				this.portOpenBtn.Text = "Open";
-
-				// Update the GUI's status message.
-				this.UpdateStatus("Port Closed");
+				// Start a new thread to poll the requested register.
+				_pollThread = new Thread(QueryInputRegister);
+				_pollThread.Start();
 			}
-
-			// If the MODBUS port is closed...
 			else
 			{
-				// Fetch the user's MODBUS configuration selections.
-				object com_name = this.comPortCb.SelectedItem;
-				object baud_name = this.baudCb.SelectedItem;
-				object parity_name = this.parityCb.SelectedItem;
-				object mb_mode = this.modeCb.SelectedItem;
-				object stop_bits = this.stopBitsCb.SelectedItem;
-
-				// Check for invalid configuration selections.
-				if (com_name == null)
+				try
 				{
-					this.ShowError("Serial Port not selected.");
+					// Stop the running thread.
+					_pollThread.Abort();
 				}
-				else if (baud_name == null)
+				catch (Exception exp)
 				{
-					this.ShowError("Baud Rate not selected.");
+					ShowError(exp.ToString());
 				}
-				else if (parity_name == null)
-				{
-					this.ShowError("Parity type not selected");
-				}
-				else if (mb_mode == null)
-				{
-					this.ShowError("Modbus Mode not selected");
-				}
-				else if (stop_bits == null)
-				{
-					this.ShowError("Stop Bits not selected");
-				}
-
-				// If the settings seem valid...
-				else
-				{
-					// Convert the baud rate to an integer.
-					int baudRate = int.Parse(baud_name.ToString());
-
-					// Convert stop bits string to comm port setting.
-					StopBits stopbits = StopBits.One;
-					if (stop_bits.ToString() == "2")
-					{
-						stopbits = StopBits.Two;
-					}
-
-					// Convert parity string to comm port setting.
-					Parity parity = Parity.Even;
-					if (parity_name.ToString() == "None")
-					{
-						parity = Parity.None;
-					}
-					else if (parity_name.ToString() == "Odd")
-					{
-						parity = Parity.Odd;
-					}
-
-					// Select the MODBUS packet size based on the selected mode.
-					int datasize = 8;
-					if (mb_mode.ToString() == "ASCII")
-					{
-						datasize = 7;
-					}
-
-					// Select the MODBUS mode.
-					ModbusSerialType mode = ModbusSerialType.RTU;
-					if (mb_mode.ToString() == "ASCII")
-					{
-						mode = ModbusSerialType.ASCII;
-					}
-
-					// Create and open serial port.
-					try
-					{
-						this.mbMaster = new ModbusMasterSerial(mode, com_name.ToString(), baudRate, datasize, parity, stopbits, Handshake.None);
-						this.mbMaster.Connect();
-
-						// Disable the controls for MODBUS configuration settings.
-						this.comPortCb.Enabled = false;
-						this.baudCb.Enabled = false;
-						this.parityCb.Enabled = false;
-						this.modeCb.Enabled = false;
-						this.stopBitsCb.Enabled = false;
-
-						// Enable the MODBUS read/write/poll buttons.
-						this.inputRegReadBtn.Enabled = true;
-						this.inputPollBtn.Enabled = true;
-						this.holdingRegReadBtn.Enabled = true;
-						this.holdingRegWriteBtn.Enabled = true;
-						this.coilReadBtn.Enabled = true;
-						this.coilWriteBtn.Enabled = true;
-
-						// Change the text on the Open/Close button.
-						this.portOpenBtn.Text = "Close";
-
-						// Update the GUI's status bar.
-						this.UpdateStatus("Port Opened");
-					}
-					catch (Exception exp)
-					{
-						this.ShowError("Unable to open serial port\n\n" + exp.ToString());
-					}
-				}
+				_pollThread = null;
 			}
 		}
 
+		#endregion
+
+		#region Holding Register Methods
+
 		/// <summary>
-		/// Runs when the "Read" button for input registers is clicked.
+		/// When the Holding Register "Read" button is clicked.
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void inputRegReadBtn_Click(object sender, EventArgs e)
+		private void ButtonHoldingRegisterRead_Click(object sender, EventArgs e)
 		{
-			String err_str = "";
-
-			Byte slaveAddr = this.getSlaveAddress();
+			byte slaveAddr = GetSlaveAddress();
 			if (slaveAddr == 0)
 			{
 				return;
 			}
 
-			UInt16 regAddr;
-			if (this.getRegisterAddr(this.inputRegAddrTb, out regAddr) == false)
+			if (GetRegisterAddr(textBoxHoldingRegisterAddress, out ushort regAddr) == false)
 			{
 				return;
 			}
 
-			UInt16 numRegs;
-			DataType dataType = this.GetDataFormat(this.inputRegFormatCb, out numRegs, this.inputRegStringLenTb);
+			DataType dataType = GetDataFormat(comboBoxHoldingRegisterFormat, out ushort numRegs, textBoxHoldingRegisterStringLength);
 			if (dataType == DataType.None)
 			{
 				return;
 			}
 
-			UInt16[] regValues;
-			if (this.ReadWriteRegisters(MBRegisterType.Input, MBActionType.Read, slaveAddr, regAddr, numRegs,
-										null, out regValues, out err_str) == false)
+			if (ReadWriteRegisters(MBRegisterType.Holding, MBActionType.Read, slaveAddr, regAddr, numRegs,
+			null, out ushort[] regValues, out string errorMsg) == false)
 			{
-				this.ShowError(err_str);
+				ShowError(errorMsg);
 				return;
 			}
-			this.displayData(this.inputRegDataTb, dataType, regValues);
+			DisplayData(textBoxHoldingRegisterData, dataType, regValues);
 
-			this.UpdateStatus("Input Register Read Successfully");
+			toolStripStatusLabel1.Text = "Holding Register Read Successfully";
 		}
 
-		private void holdingRegReadBtn_Click(object sender, EventArgs e)
+		/// <summary>
+		/// When the Holding Register "Write" button is clicked.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ButtonHoldingRegisterWrite_Click(object sender, EventArgs e)
 		{
-			String errorMsg = "";
-
-			Byte slaveAddr = this.getSlaveAddress();
+			byte slaveAddr = GetSlaveAddress();
 			if (slaveAddr == 0)
 			{
 				return;
 			}
 
-			UInt16 regAddr;
-			if (this.getRegisterAddr(this.holdingRegAddrTb, out regAddr) == false)
+			if (GetRegisterAddr(textBoxHoldingRegisterAddress, out ushort regAddr) == false)
 			{
 				return;
 			}
 
-			UInt16 numRegs;
-			DataType dataType = this.GetDataFormat(this.holdingRegFormatCb, out numRegs, this.holdingRegStringLenTb);
+			DataType dataType = GetDataFormat(comboBoxHoldingRegisterFormat, out ushort numRegs, textBoxHoldingRegisterStringLength);
 			if (dataType == DataType.None)
 			{
 				return;
 			}
 
-			UInt16[] regValues;
-			if (this.ReadWriteRegisters(MBRegisterType.Holding, MBActionType.Read, slaveAddr, regAddr, numRegs,
-										null, out regValues, out errorMsg) == false)
-			{
-				this.ShowError(errorMsg);
-				return;
-			}
-			this.displayData(this.holdingRegDataTb, dataType, regValues);
-
-			this.UpdateStatus("Holding Register Read Successfully");
-		}
-
-		private void holdingRegWriteBtn_Click(object sender, EventArgs e)
-		{
-			String errorMsg = "";
-			UInt16[] rsp;
-
-			Byte slaveAddr = this.getSlaveAddress();
-			if (slaveAddr == 0)
-			{
-				return;
-			}
-
-			UInt16 regAddr;
-			if (this.getRegisterAddr(this.holdingRegAddrTb, out regAddr) == false)
-			{
-				return;
-			}
-
-			UInt16 numRegs;
-			DataType dataType = this.GetDataFormat(this.holdingRegFormatCb, out numRegs, this.holdingRegStringLenTb);
-			if (dataType == DataType.None)
-			{
-				return;
-			}
-
-			UInt16[] regs = this.StringToRegisters(this.holdingRegDataTb.Text, dataType, numRegs);
+			ushort[] regs = StringToRegisters(textBoxHoldingRegisterData.Text, dataType, numRegs);
 			if (regs == null)
 			{
-				this.ShowError("Data to write does not match selected format");
+				ShowError("Data to write does not match selected format");
 				return;
 			}
 
-			if (this.ReadWriteRegisters(MBRegisterType.Holding, MBActionType.Write, slaveAddr, regAddr, (UInt16)regs.Length,
-										regs, out rsp, out errorMsg) == false)
+			if (ReadWriteRegisters(MBRegisterType.Holding, MBActionType.Write, slaveAddr, regAddr, (ushort)regs.Length,
+										regs, out ushort[] rsp, out string errorMsg) == false)
 			{
-				this.ShowError(errorMsg);
+				ShowError(errorMsg);
 				return;
 			}
 
-			this.UpdateStatus("Holding Register Written Successfully");
+			toolStripStatusLabel1.Text = "Holding Register Written Successfully";
 		}
 
-		private void coilReadBtn_Click(object sender, EventArgs e)
-		{
-			String errorMsg = "";
+		#endregion
 
-			Byte slaveAddr = this.getSlaveAddress();
+		#region Coil Methods
+
+		/// <summary>
+		/// When the Coil "Read" button is clicked.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ButtonCoilRead_Click(object sender, EventArgs e)
+		{
+			byte slaveAddr = GetSlaveAddress();
 			if (slaveAddr == 0)
 			{
 				return;
 			}
 
-			UInt16 regAddr;
-			if (this.getRegisterAddr(this.coilAddrTb, out regAddr) == false)
+			if (GetRegisterAddr(textBoxCoilAddr, out ushort regAddr) == false)
 			{
 				return;
 			}
 
-			bool[] coils;
-			if (this.ReadWriteCoils(MBActionType.Read, slaveAddr, regAddr, 1, null, out coils, out errorMsg) == false)
+			if (ReadWriteCoils(MBActionType.Read, slaveAddr, regAddr, 1, null, out bool[] coils, out string errorMsg) == false)
 			{
-				this.ShowError(errorMsg);
+				ShowError(errorMsg);
 				return;
 			}
 
@@ -518,131 +685,59 @@ namespace ModbusGUI
 			{
 				if (coils[0] == true)
 				{
-					this.coilFalseRadioBtn.Checked = false;
-					this.coilTrueRadioBtn.Checked = true;
+					radioButtonCoilFalse.Checked = false;
+					radioButtonCoilTrue.Checked = true;
 				}
 				else
 				{
-					this.coilTrueRadioBtn.Checked = false;
-					this.coilFalseRadioBtn.Checked = true;
+					radioButtonCoilTrue.Checked = false;
+					radioButtonCoilFalse.Checked = true;
 				}
 			}
 
-			this.UpdateStatus("Coil Read Successfully");
+			toolStripStatusLabel1.Text = "Coil Read Successfully";
 		}
 
-		private void coilWriteBtn_Click(object sender, EventArgs e)
+		/// <summary>
+		/// When the Coil "Write" button is clicked.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ButtonCoilWrite_Click(object sender, EventArgs e)
 		{
-			String errorMsg = "";
 			bool[] write_coils = new bool[1];
-			bool[] read_coils;
 
-			Byte slaveAddr = this.getSlaveAddress();
+			byte slaveAddr = GetSlaveAddress();
 			if (slaveAddr == 0)
 			{
 				return;
 			}
 
-			UInt16 regAddr;
-			if (this.getRegisterAddr(this.coilAddrTb, out regAddr) == false)
+			if (GetRegisterAddr(textBoxCoilAddr, out ushort regAddr) == false)
 			{
 				return;
 			}
 
-			write_coils[0] = this.coilTrueRadioBtn.Checked;
-			if (this.ReadWriteCoils(MBActionType.Write, slaveAddr, regAddr, (UInt16)write_coils.Length,
-									write_coils, out read_coils, out errorMsg) == false)
+			write_coils[0] = radioButtonCoilTrue.Checked;
+			if (ReadWriteCoils(MBActionType.Write, slaveAddr, regAddr, (ushort)write_coils.Length,
+									write_coils, out bool[] read_coils, out string errorMsg) == false)
 			{
-				this.ShowError(errorMsg);
+				ShowError(errorMsg);
 				return;
 			}
 
-			this.UpdateStatus("Coil Written Successfully");
+			toolStripStatusLabel1.Text = "Coil Written Successfully";
 		}
 
-		private void inputPollBtn_Click(object sender, EventArgs e)
-		{
-			if (this.pollThread == null)
-			{
-				// Start a new thread to poll the requested register
-				this.pollThread = new Thread(this.QueryInputRegister);
-				this.pollThread.Start();
-			}
-			else
-			{
-				try
-				{
-					// Stop the running thread
-					this.pollThread.Abort();
-				}
-				catch (Exception exp)
-				{
-					Debug.WriteLine(exp.ToString());
-				}
-				this.pollThread = null;
-			}
-		}
-		
-		private Byte getSlaveAddress()
-		{
-			Byte address = 0;
-			bool status;
+		#endregion
 
-			try
-			{
-				status = Byte.TryParse(this.slaveAddrTb.Text, System.Globalization.NumberStyles.HexNumber,
-										CultureInfo.InvariantCulture, out address);
-				if (status == false)
-				{
-					this.ShowError("Invalid Slave Address");
-				}
-				else if ((address < 1) || (address > 247))
-				{
-					this.ShowError("Slave Address Must be between 1 and 247");
-					address = 0;
-				}
-			}
-			catch (Exception exp)
-			{
-				this.ShowError(exp.ToString());
-			}
 
-			return address;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="tb"></param>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		private bool getRegisterAddr(TextBox tb, out UInt16 value)
-		{
-			value = 0;
-			bool retval = false;
-
-			try
-			{
-				retval = UInt16.TryParse(tb.Text, out value);
-				if (retval == false)
-				{
-					this.ShowError("Invalid Register Address");
-				}
-			}
-			catch (Exception exp)
-			{
-				this.ShowError(exp.ToString());
-			}
-
-			return retval;
-		}
-
-		private void displayData(TextBox tb, DataType type, UInt16[] registers)
+		private void DisplayData(TextBox tb, DataType type, ushort[] registers)
 		{
 			List<byte> raw = new List<byte>(4);
 			byte[] rawRegister;
-			String dataString = "";
-			
+			string dataString = "";
+
 			switch (type)
 			{
 				case DataType.Float:
@@ -669,7 +764,7 @@ namespace ModbusGUI
 						raw.Add(rawRegister[1]);
 						raw.Add(rawRegister[0]);
 					}
-					for (int i = raw.Count-1; i >= 0; i--)
+					for (int i = raw.Count - 1; i >= 0; i--)
 					{
 						if ((raw[i] < 0x20) || (raw[i] > 126))
 						{
@@ -710,17 +805,16 @@ namespace ModbusGUI
 			tb.BeginInvoke((MethodInvoker)(() => tb.Text = dataString));
 		}
 
-		private UInt16[] StringToRegisters(String str, DataType type, UInt16 numRegs)
+		private ushort[] StringToRegisters(string str, DataType type, ushort numRegs)
 		{
-			UInt16[] regs = new UInt16[numRegs];
+			ushort[] regs = new ushort[numRegs];
 			bool retval;
 
 			switch (type)
 			{
 				case DataType.Float:
 					{
-						float value;
-						retval = float.TryParse(str, out value);
+						retval = float.TryParse(str, out float value);
 						if (retval == false)
 						{
 							return null;
@@ -731,8 +825,7 @@ namespace ModbusGUI
 					break;
 				case DataType.Int32:
 					{
-						Int32 value;
-						retval = Int32.TryParse(str, out value);
+						retval = int.TryParse(str, out int value);
 						if (retval == false)
 						{
 							return null;
@@ -743,8 +836,7 @@ namespace ModbusGUI
 					break;
 				case DataType.UInt32:
 					{
-						UInt32 value;
-						retval = UInt32.TryParse(str, out value);
+						retval = uint.TryParse(str, out uint value);
 						if (retval == false)
 						{
 							return null;
@@ -755,19 +847,17 @@ namespace ModbusGUI
 					break;
 				case DataType.Int16:
 					{
-						Int16 value;
-						retval = Int16.TryParse(str, out value);
+						retval = short.TryParse(str, out short value);
 						if (retval == false)
 						{
 							return null;
 						}
-						regs[0] = (UInt16)value;
+						regs[0] = (ushort)value;
 					}
 					break;
 				case DataType.UInt16:
 					{
-						UInt16 value;
-						retval = UInt16.TryParse(str, out value);
+						retval = ushort.TryParse(str, out ushort value);
 						if (retval == false)
 						{
 							return null;
@@ -784,7 +874,7 @@ namespace ModbusGUI
 						{
 							if (j < strBytes.Length)
 							{
-								regs[i] = (UInt16)((UInt16)strBytes[j] << 8);
+								regs[i] = (ushort)((ushort)strBytes[j] << 8);
 								j++;
 							}
 							else
@@ -803,30 +893,10 @@ namespace ModbusGUI
 			return regs;
 		}
 
-		/// <summary>
-		/// Prints a message to the status bar at the bottom of the GUI, and pops up
-		/// a message window with the message.
-		/// </summary>
-		/// <param name="errMsg"></param>
-		private void ShowError(String errMsg)
-		{
-			this.UpdateStatus(errMsg);
-			MessageBox.Show(this, errMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-		}
-
-		/// <summary>
-		/// Prints a message to the status bar at the bottom of the GUI.
-		/// </summary>
-		/// <param name="statusMsg"></param>
-		private void UpdateStatus(String statusMsg)
-		{
-			this.mainStatusLbl.Text = DateTime.Now.ToShortTimeString() + ": " + statusMsg;
-		}
-
 		private void QueryInputRegister()
 		{
-			String err_str = "";
-			Byte slaveAddr;
+			string err_str = "";
+			byte slaveAddr;
 
 			while (true)
 			{
@@ -836,21 +906,20 @@ namespace ModbusGUI
 					return;
 				}
 
-				UInt16 regAddr;
+				ushort regAddr;
 				regAddr = 4003;
 
-				UInt16 numRegs;
+				ushort numRegs;
 				numRegs = 2;
 				DataType dataType = DataType.Float;
 
-				UInt16[] regValues;
-				if (this.ReadWriteRegisters(MBRegisterType.Input, MBActionType.Read, slaveAddr, regAddr, numRegs,
-											null, out regValues, out err_str) == false)
+				if (ReadWriteRegisters(MBRegisterType.Input, MBActionType.Read, slaveAddr, regAddr, numRegs,
+											null, out ushort[] regValues, out err_str) == false)
 				{
-					this.ShowError(err_str);
+					ShowError(err_str);
 					return;
 				}
-				this.displayData(this.inputRegDataTb, dataType, regValues);                
+				DisplayData(textBoxInputRegisterData, dataType, regValues);
 			}
 		}
 
@@ -865,8 +934,8 @@ namespace ModbusGUI
 		/// <param name="result"></param>
 		/// <param name="errorMsg"></param>
 		/// <returns></returns>
-		private bool ReadWriteCoils(MBActionType action, Byte slaveAddress, UInt16 startAddress, UInt16 numberOfCoils,
-									bool[] writeValues, out bool[] result, out String errorMsg)
+		private bool ReadWriteCoils(MBActionType action, byte slaveAddress, ushort startAddress, ushort numberOfCoils,
+									bool[] writeValues, out bool[] result, out string errorMsg)
 		{
 			bool success = true;
 
@@ -877,17 +946,17 @@ namespace ModbusGUI
 			{
 				if (action == MBActionType.Read)
 				{
-					result = this.mbMaster.ReadCoils(slaveAddress, (UInt16)(startAddress - 1), numberOfCoils);
+					result = _mbMaster.ReadCoils(slaveAddress, (ushort)(startAddress - 1), numberOfCoils);
 				}
 				else // write
 				{
 					if (writeValues.Length == 1)
 					{
-						this.mbMaster.WriteSingleCoil(slaveAddress, (UInt16)(startAddress - 1), writeValues[0]);
+						_mbMaster.WriteSingleCoil(slaveAddress, (ushort)(startAddress - 1), writeValues[0]);
 					}
 					else
 					{
-						this.mbMaster.WriteMultipleCoils(slaveAddress, (UInt16)(startAddress - 1), writeValues);
+						_mbMaster.WriteMultipleCoils(slaveAddress, (ushort)(startAddress - 1), writeValues);
 					}
 				}
 			}
@@ -902,7 +971,7 @@ namespace ModbusGUI
 				success = false;
 			}
 
-			if (mbMaster.Error != Errors.NO_ERROR)
+			if (_mbMaster.Error != Errors.NO_ERROR)
 			{
 				success = false;
 			}
@@ -910,18 +979,24 @@ namespace ModbusGUI
 			return success;
 		}
 
-		/*! \brief Read Modbus Input Registers
-		 * 
-		 * Calls the Modbus library read input registers.  This function will handle the exceptions and
-		 * return False and an error string in errorMsg if the commands fails.
-		 * @param slaveAddress The target device address on the bus.
-		 * @param startAddress The address of the first register to read in generic 1-based addressing
-		 * @param result The data read from the specified target
-		 * @param errorMsg An error message describing why the command failed.
-		 * @return true if success, otherwise false.
-		 */
-		private bool ReadWriteRegisters(MBRegisterType type, MBActionType action, Byte slaveAddress, UInt16 startAddress,
-										UInt16 numberOfRegisters, UInt16[] writeValues, out UInt16[] result, out String errorMsg)
+		/// <summary>
+		/// Read Modbus Input Registers
+		/// </summary>
+		/// <remarks>
+		/// Calls the Modbus library read input registers.  This function will handle the exceptions and
+		/// return false and an error string in errorMsg if the commands fails.
+		/// </remarks>
+		/// <param name="type"></param>
+		/// <param name="action"></param>
+		/// <param name="slaveAddress">target device address on the bus</param>
+		/// <param name="startAddress">address of the first register to read in generic 1-based addressing</param>
+		/// <param name="numberOfRegisters"></param>
+		/// <param name="writeValues"></param>
+		/// <param name="result">data read from the specified target</param>
+		/// <param name="errorMsg">error message describing why the command failed</param>
+		/// <returns>true if success, otherwise false</returns>
+		private bool ReadWriteRegisters(MBRegisterType type, MBActionType action, byte slaveAddress, ushort startAddress,
+										ushort numberOfRegisters, ushort[] writeValues, out ushort[] result, out string errorMsg)
 		{
 			bool success = true;
 
@@ -934,7 +1009,7 @@ namespace ModbusGUI
 				{
 					if (action == MBActionType.Read)
 					{
-						result = this.mbMaster.ReadInputRegisters(slaveAddress, (UInt16)(startAddress - 1), numberOfRegisters);
+						result = _mbMaster.ReadInputRegisters(slaveAddress, (ushort)(startAddress - 1), numberOfRegisters);
 					}
 					else // Write
 					{
@@ -946,20 +1021,20 @@ namespace ModbusGUI
 				{
 					if (action == MBActionType.Read)
 					{
-						result = this.mbMaster.ReadHoldingRegisters(slaveAddress, (UInt16)(startAddress - 1), numberOfRegisters);
+						result = _mbMaster.ReadHoldingRegisters(slaveAddress, (ushort)(startAddress - 1), numberOfRegisters);
 					}
 					else if (action == MBActionType.WriteSingle)
 					{
 						for (int writeIndex = 0; writeIndex < numberOfRegisters; writeIndex++)
 						{
-							this.mbMaster.WriteSingleRegister(slaveAddress, (UInt16)(startAddress - 1), writeValues[writeIndex]);
+							_mbMaster.WriteSingleRegister(slaveAddress, (ushort)(startAddress - 1), writeValues[writeIndex]);
 							// Next register address
 							startAddress += 1;
 						}
 					}
 					else // Write
 					{
-						this.mbMaster.WriteMultipleRegisters(slaveAddress, (UInt16)(startAddress - 1), writeValues);
+						_mbMaster.WriteMultipleRegisters(slaveAddress, (ushort)(startAddress - 1), writeValues);
 					}
 				}
 			}
@@ -974,11 +1049,11 @@ namespace ModbusGUI
 				success = false;
 			}
 
-			if (mbMaster.Error == Errors.RX_TIMEOUT)
+			if (_mbMaster.Error == Errors.RX_TIMEOUT)
 			{
 				errorMsg = "Timeout:  The Slave failed to respond within the desired time frame.";
 			}
-			if (mbMaster.Error != Errors.NO_ERROR)
+			if (_mbMaster.Error != Errors.NO_ERROR)
 			{
 				success = false;
 			}
@@ -986,7 +1061,7 @@ namespace ModbusGUI
 			return success;
 		}
 
-		private double RegistersToDouble(DataType type, UInt16[] regs)
+		private double RegistersToDouble(DataType type, ushort[] regs)
 		{
 			List<byte> raw = new List<byte>(4);
 			byte[] raw_reg;
@@ -1038,5 +1113,20 @@ namespace ModbusGUI
 
 			return result;
 		}
+
+		#region Helper Methods
+
+		/// <summary>
+		/// Prints a message to the status bar at the bottom of the GUI, and pops up
+		/// a message window with the message.
+		/// </summary>
+		/// <param name="errMsg"></param>
+		private void ShowError(string errMsg)
+		{
+			toolStripStatusLabel1.Text = errMsg;
+			MessageBox.Show(this, errMsg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		}
+
+		#endregion
 	}
 }

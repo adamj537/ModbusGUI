@@ -32,60 +32,75 @@
 			this.mainMenuStrip = new System.Windows.Forms.MenuStrip();
 			this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.configGroupBox = new System.Windows.Forms.GroupBox();
-			this.stopBitsCb = new System.Windows.Forms.ComboBox();
-			this.stopBitsLbl = new System.Windows.Forms.Label();
-			this.portOpenBtn = new System.Windows.Forms.Button();
-			this.modeCb = new System.Windows.Forms.ComboBox();
-			this.modeLbl = new System.Windows.Forms.Label();
-			this.parityCb = new System.Windows.Forms.ComboBox();
-			this.parityLbl = new System.Windows.Forms.Label();
-			this.baudCb = new System.Windows.Forms.ComboBox();
-			this.baudLbl = new System.Windows.Forms.Label();
-			this.portRefreshBtn = new System.Windows.Forms.Button();
-			this.comPortCb = new System.Windows.Forms.ComboBox();
-			this.comPortLbl = new System.Windows.Forms.Label();
-			this.dataTabControl = new System.Windows.Forms.TabControl();
-			this.inputRegistersTabPage = new System.Windows.Forms.TabPage();
-			this.inputPollBtn = new System.Windows.Forms.Button();
-			this.inputRegStringLenTb = new System.Windows.Forms.TextBox();
-			this.inputRegStringLenLbl = new System.Windows.Forms.Label();
-			this.inputRegReadBtn = new System.Windows.Forms.Button();
-			this.inputRegDataTb = new System.Windows.Forms.TextBox();
-			this.inputRegDataLbl = new System.Windows.Forms.Label();
-			this.inputRegFormatLbl = new System.Windows.Forms.Label();
-			this.inputRegFormatCb = new System.Windows.Forms.ComboBox();
-			this.inputRegAddrTb = new System.Windows.Forms.TextBox();
-			this.inputRegAddrLbl = new System.Windows.Forms.Label();
-			this.holdingRegistersTabPage = new System.Windows.Forms.TabPage();
-			this.holdingRegStringLenTb = new System.Windows.Forms.TextBox();
-			this.holdingRegStringLenLbl = new System.Windows.Forms.Label();
-			this.holdingRegWriteBtn = new System.Windows.Forms.Button();
-			this.holdingRegReadBtn = new System.Windows.Forms.Button();
-			this.holdingRegDataTb = new System.Windows.Forms.TextBox();
-			this.holdingRegDataLbl = new System.Windows.Forms.Label();
-			this.holdingRegFormatCb = new System.Windows.Forms.ComboBox();
-			this.holdingRegFormatLbl = new System.Windows.Forms.Label();
-			this.holdingRegAddrTb = new System.Windows.Forms.TextBox();
-			this.holdingRegAddrLbl = new System.Windows.Forms.Label();
-			this.coilsTabPage = new System.Windows.Forms.TabPage();
-			this.coilWriteBtn = new System.Windows.Forms.Button();
-			this.coilReadBtn = new System.Windows.Forms.Button();
-			this.coilFalseRadioBtn = new System.Windows.Forms.RadioButton();
-			this.coilTrueRadioBtn = new System.Windows.Forms.RadioButton();
-			this.coilAddrTb = new System.Windows.Forms.TextBox();
-			this.coilAddrLbl = new System.Windows.Forms.Label();
-			this.slaveAddrLbl = new System.Windows.Forms.Label();
-			this.slaveAddrTb = new System.Windows.Forms.TextBox();
-			this.mainStatusStrip = new System.Windows.Forms.StatusStrip();
-			this.mainStatusLbl = new System.Windows.Forms.ToolStripStatusLabel();
+			this.groupBoxSerialPort = new System.Windows.Forms.GroupBox();
+			this.tableLayoutPanelSerialPort = new System.Windows.Forms.TableLayoutPanel();
+			this.labelComPort = new System.Windows.Forms.Label();
+			this.comboBoxSerialPort = new System.Windows.Forms.ComboBox();
+			this.buttonPortRefresh = new System.Windows.Forms.Button();
+			this.labelBaudRate = new System.Windows.Forms.Label();
+			this.comboBoxBaudRate = new System.Windows.Forms.ComboBox();
+			this.labelStopBits = new System.Windows.Forms.Label();
+			this.comboBoxStopBits = new System.Windows.Forms.ComboBox();
+			this.labelParity = new System.Windows.Forms.Label();
+			this.comboBoxParity = new System.Windows.Forms.ComboBox();
+			this.labelMode = new System.Windows.Forms.Label();
+			this.comboBoxMode = new System.Windows.Forms.ComboBox();
+			this.radioButtonOpen = new System.Windows.Forms.RadioButton();
+			this.radioButtonClosed = new System.Windows.Forms.RadioButton();
+			this.tabControlData = new System.Windows.Forms.TabControl();
+			this.tabPageCoils = new System.Windows.Forms.TabPage();
+			this.tableLayoutPanelCoils = new System.Windows.Forms.TableLayoutPanel();
+			this.labelCoilValue = new System.Windows.Forms.Label();
+			this.labelCoilAddress = new System.Windows.Forms.Label();
+			this.textBoxCoilAddr = new System.Windows.Forms.TextBox();
+			this.buttonCoilRead = new System.Windows.Forms.Button();
+			this.buttonCoilWrite = new System.Windows.Forms.Button();
+			this.radioButtonCoilTrue = new System.Windows.Forms.RadioButton();
+			this.radioButtonCoilFalse = new System.Windows.Forms.RadioButton();
+			this.tabPageInputRegisters = new System.Windows.Forms.TabPage();
+			this.tableLayoutPanelInputRegisters = new System.Windows.Forms.TableLayoutPanel();
+			this.buttonInputRegisterPoll = new System.Windows.Forms.Button();
+			this.labelInputRegisterAddress = new System.Windows.Forms.Label();
+			this.buttonInputRegisterRead = new System.Windows.Forms.Button();
+			this.textBoxInputRegisterStringLength = new System.Windows.Forms.TextBox();
+			this.textBoxInputRegisterAddress = new System.Windows.Forms.TextBox();
+			this.labelInputRegisterStringLength = new System.Windows.Forms.Label();
+			this.comboBoxInputRegisterFormat = new System.Windows.Forms.ComboBox();
+			this.labelInputRegisterDataFormat = new System.Windows.Forms.Label();
+			this.labelInputRegisterData = new System.Windows.Forms.Label();
+			this.textBoxInputRegisterData = new System.Windows.Forms.TextBox();
+			this.tabPageHoldingRegisters = new System.Windows.Forms.TabPage();
+			this.tableLayoutPanelHoldingRegisters = new System.Windows.Forms.TableLayoutPanel();
+			this.buttonHoldingRegisterWrite = new System.Windows.Forms.Button();
+			this.textBoxHoldingRegisterStringLength = new System.Windows.Forms.TextBox();
+			this.buttonHoldingRegisterRead = new System.Windows.Forms.Button();
+			this.labelHoldingRegisterAddress = new System.Windows.Forms.Label();
+			this.textBoxHoldingRegisterData = new System.Windows.Forms.TextBox();
+			this.labelHoldingRegisterStringLength = new System.Windows.Forms.Label();
+			this.labelHoldingRegisterData = new System.Windows.Forms.Label();
+			this.textBoxHoldingRegisterAddress = new System.Windows.Forms.TextBox();
+			this.labelHoldingRegisterFormat = new System.Windows.Forms.Label();
+			this.comboBoxHoldingRegisterFormat = new System.Windows.Forms.ComboBox();
+			this.labelSlaveAddress = new System.Windows.Forms.Label();
+			this.textBoxSlaveAddr = new System.Windows.Forms.TextBox();
+			this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+			this.labelMainStatus = new System.Windows.Forms.ToolStripStatusLabel();
+			this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+			this.groupBoxCommunication = new System.Windows.Forms.GroupBox();
+			this.tableLayoutPanelCommunication = new System.Windows.Forms.TableLayoutPanel();
 			this.mainMenuStrip.SuspendLayout();
-			this.configGroupBox.SuspendLayout();
-			this.dataTabControl.SuspendLayout();
-			this.inputRegistersTabPage.SuspendLayout();
-			this.holdingRegistersTabPage.SuspendLayout();
-			this.coilsTabPage.SuspendLayout();
-			this.mainStatusStrip.SuspendLayout();
+			this.groupBoxSerialPort.SuspendLayout();
+			this.tableLayoutPanelSerialPort.SuspendLayout();
+			this.tabControlData.SuspendLayout();
+			this.tabPageCoils.SuspendLayout();
+			this.tableLayoutPanelCoils.SuspendLayout();
+			this.tabPageInputRegisters.SuspendLayout();
+			this.tableLayoutPanelInputRegisters.SuspendLayout();
+			this.tabPageHoldingRegisters.SuspendLayout();
+			this.tableLayoutPanelHoldingRegisters.SuspendLayout();
+			this.statusStrip1.SuspendLayout();
+			this.groupBoxCommunication.SuspendLayout();
+			this.tableLayoutPanelCommunication.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// mainMenuStrip
@@ -94,7 +109,7 @@
             this.fileToolStripMenuItem});
 			this.mainMenuStrip.Location = new System.Drawing.Point(0, 0);
 			this.mainMenuStrip.Name = "mainMenuStrip";
-			this.mainMenuStrip.Size = new System.Drawing.Size(647, 24);
+			this.mainMenuStrip.Size = new System.Drawing.Size(387, 24);
 			this.mainMenuStrip.TabIndex = 0;
 			this.mainMenuStrip.Text = "menuStrip1";
 			// 
@@ -111,537 +126,714 @@
 			this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
 			this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
 			this.exitToolStripMenuItem.Text = "E&xit";
-			this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+			this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
 			// 
-			// configGroupBox
+			// groupBoxSerialPort
 			// 
-			this.configGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.configGroupBox.Controls.Add(this.stopBitsCb);
-			this.configGroupBox.Controls.Add(this.stopBitsLbl);
-			this.configGroupBox.Controls.Add(this.portOpenBtn);
-			this.configGroupBox.Controls.Add(this.modeCb);
-			this.configGroupBox.Controls.Add(this.modeLbl);
-			this.configGroupBox.Controls.Add(this.parityCb);
-			this.configGroupBox.Controls.Add(this.parityLbl);
-			this.configGroupBox.Controls.Add(this.baudCb);
-			this.configGroupBox.Controls.Add(this.baudLbl);
-			this.configGroupBox.Controls.Add(this.portRefreshBtn);
-			this.configGroupBox.Controls.Add(this.comPortCb);
-			this.configGroupBox.Controls.Add(this.comPortLbl);
-			this.configGroupBox.Location = new System.Drawing.Point(12, 27);
-			this.configGroupBox.Name = "configGroupBox";
-			this.configGroupBox.Size = new System.Drawing.Size(623, 87);
-			this.configGroupBox.TabIndex = 1;
-			this.configGroupBox.TabStop = false;
-			this.configGroupBox.Text = "Configuration";
+			this.groupBoxSerialPort.AutoSize = true;
+			this.groupBoxSerialPort.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.groupBoxSerialPort.Controls.Add(this.tableLayoutPanelSerialPort);
+			this.groupBoxSerialPort.Dock = System.Windows.Forms.DockStyle.Top;
+			this.groupBoxSerialPort.Location = new System.Drawing.Point(0, 24);
+			this.groupBoxSerialPort.Name = "groupBoxSerialPort";
+			this.groupBoxSerialPort.Size = new System.Drawing.Size(387, 102);
+			this.groupBoxSerialPort.TabIndex = 1;
+			this.groupBoxSerialPort.TabStop = false;
+			this.groupBoxSerialPort.Text = "Serial Port";
 			// 
-			// stopBitsCb
+			// tableLayoutPanelSerialPort
 			// 
-			this.stopBitsCb.FormattingEnabled = true;
-			this.stopBitsCb.Items.AddRange(new object[] {
-            "1",
-            "2"});
-			this.stopBitsCb.Location = new System.Drawing.Point(243, 49);
-			this.stopBitsCb.Name = "stopBitsCb";
-			this.stopBitsCb.Size = new System.Drawing.Size(73, 21);
-			this.stopBitsCb.TabIndex = 11;
+			this.tableLayoutPanelSerialPort.AutoSize = true;
+			this.tableLayoutPanelSerialPort.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.tableLayoutPanelSerialPort.ColumnCount = 6;
+			this.tableLayoutPanelSerialPort.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelSerialPort.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelSerialPort.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelSerialPort.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelSerialPort.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelSerialPort.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelSerialPort.Controls.Add(this.labelComPort, 0, 0);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.comboBoxSerialPort, 1, 0);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.buttonPortRefresh, 2, 0);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.labelBaudRate, 0, 1);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.comboBoxBaudRate, 1, 1);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.labelStopBits, 3, 0);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.comboBoxStopBits, 4, 0);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.labelParity, 3, 1);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.comboBoxParity, 4, 1);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.labelMode, 3, 2);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.comboBoxMode, 4, 2);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.radioButtonOpen, 5, 0);
+			this.tableLayoutPanelSerialPort.Controls.Add(this.radioButtonClosed, 5, 1);
+			this.tableLayoutPanelSerialPort.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.tableLayoutPanelSerialPort.Location = new System.Drawing.Point(3, 16);
+			this.tableLayoutPanelSerialPort.Name = "tableLayoutPanelSerialPort";
+			this.tableLayoutPanelSerialPort.RowCount = 3;
+			this.tableLayoutPanelSerialPort.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelSerialPort.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelSerialPort.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelSerialPort.Size = new System.Drawing.Size(381, 83);
+			this.tableLayoutPanelSerialPort.TabIndex = 12;
 			// 
-			// stopBitsLbl
+			// labelComPort
 			// 
-			this.stopBitsLbl.AutoSize = true;
-			this.stopBitsLbl.Location = new System.Drawing.Point(185, 52);
-			this.stopBitsLbl.Name = "stopBitsLbl";
-			this.stopBitsLbl.Size = new System.Drawing.Size(52, 13);
-			this.stopBitsLbl.TabIndex = 10;
-			this.stopBitsLbl.Text = "Stop Bits:";
+			this.labelComPort.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelComPort.AutoSize = true;
+			this.labelComPort.Location = new System.Drawing.Point(3, 8);
+			this.labelComPort.Name = "labelComPort";
+			this.labelComPort.Size = new System.Drawing.Size(56, 13);
+			this.labelComPort.TabIndex = 0;
+			this.labelComPort.Text = "COM Port:";
 			// 
-			// portOpenBtn
+			// comboBoxSerialPort
 			// 
-			this.portOpenBtn.Location = new System.Drawing.Point(471, 20);
-			this.portOpenBtn.Name = "portOpenBtn";
-			this.portOpenBtn.Size = new System.Drawing.Size(64, 23);
-			this.portOpenBtn.TabIndex = 9;
-			this.portOpenBtn.Text = "Open";
-			this.portOpenBtn.UseVisualStyleBackColor = true;
-			this.portOpenBtn.Click += new System.EventHandler(this.portOpenBtn_Click);
+			this.comboBoxSerialPort.FormattingEnabled = true;
+			this.comboBoxSerialPort.Location = new System.Drawing.Point(70, 3);
+			this.comboBoxSerialPort.Name = "comboBoxSerialPort";
+			this.comboBoxSerialPort.Size = new System.Drawing.Size(73, 21);
+			this.comboBoxSerialPort.TabIndex = 1;
 			// 
-			// modeCb
+			// buttonPortRefresh
 			// 
-			this.modeCb.FormattingEnabled = true;
-			this.modeCb.Items.AddRange(new object[] {
-            "RTU",
-            "ASCII"});
-			this.modeCb.Location = new System.Drawing.Point(367, 49);
-			this.modeCb.Name = "modeCb";
-			this.modeCb.Size = new System.Drawing.Size(73, 21);
-			this.modeCb.TabIndex = 8;
+			this.buttonPortRefresh.Image = ((System.Drawing.Image)(resources.GetObject("buttonPortRefresh.Image")));
+			this.buttonPortRefresh.Location = new System.Drawing.Point(149, 3);
+			this.buttonPortRefresh.Name = "buttonPortRefresh";
+			this.buttonPortRefresh.Size = new System.Drawing.Size(28, 23);
+			this.buttonPortRefresh.TabIndex = 2;
+			this.buttonPortRefresh.UseVisualStyleBackColor = true;
+			this.buttonPortRefresh.Click += new System.EventHandler(this.ButtonPortRefresh_Click);
 			// 
-			// modeLbl
+			// labelBaudRate
 			// 
-			this.modeLbl.AutoSize = true;
-			this.modeLbl.Location = new System.Drawing.Point(324, 52);
-			this.modeLbl.Name = "modeLbl";
-			this.modeLbl.Size = new System.Drawing.Size(37, 13);
-			this.modeLbl.TabIndex = 7;
-			this.modeLbl.Text = "Mode:";
+			this.labelBaudRate.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelBaudRate.AutoSize = true;
+			this.labelBaudRate.Location = new System.Drawing.Point(3, 36);
+			this.labelBaudRate.Name = "labelBaudRate";
+			this.labelBaudRate.Size = new System.Drawing.Size(61, 13);
+			this.labelBaudRate.TabIndex = 3;
+			this.labelBaudRate.Text = "Baud Rate:";
 			// 
-			// parityCb
+			// comboBoxBaudRate
 			// 
-			this.parityCb.FormattingEnabled = true;
-			this.parityCb.Items.AddRange(new object[] {
-            "Even",
-            "Odd",
-            "None"});
-			this.parityCb.Location = new System.Drawing.Point(367, 22);
-			this.parityCb.Name = "parityCb";
-			this.parityCb.Size = new System.Drawing.Size(73, 21);
-			this.parityCb.TabIndex = 6;
-			// 
-			// parityLbl
-			// 
-			this.parityLbl.AutoSize = true;
-			this.parityLbl.Location = new System.Drawing.Point(325, 25);
-			this.parityLbl.Name = "parityLbl";
-			this.parityLbl.Size = new System.Drawing.Size(36, 13);
-			this.parityLbl.TabIndex = 5;
-			this.parityLbl.Text = "Parity:";
-			// 
-			// baudCb
-			// 
-			this.baudCb.FormattingEnabled = true;
-			this.baudCb.Items.AddRange(new object[] {
+			this.comboBoxBaudRate.FormattingEnabled = true;
+			this.comboBoxBaudRate.Items.AddRange(new object[] {
             "9600",
             "19200",
             "38400",
             "57600",
             "76800",
             "115200"});
-			this.baudCb.Location = new System.Drawing.Point(243, 22);
-			this.baudCb.Name = "baudCb";
-			this.baudCb.Size = new System.Drawing.Size(73, 21);
-			this.baudCb.TabIndex = 4;
+			this.comboBoxBaudRate.Location = new System.Drawing.Point(70, 32);
+			this.comboBoxBaudRate.Name = "comboBoxBaudRate";
+			this.comboBoxBaudRate.Size = new System.Drawing.Size(73, 21);
+			this.comboBoxBaudRate.TabIndex = 4;
 			// 
-			// baudLbl
+			// labelStopBits
 			// 
-			this.baudLbl.AutoSize = true;
-			this.baudLbl.Location = new System.Drawing.Point(176, 25);
-			this.baudLbl.Name = "baudLbl";
-			this.baudLbl.Size = new System.Drawing.Size(61, 13);
-			this.baudLbl.TabIndex = 3;
-			this.baudLbl.Text = "Baud Rate:";
+			this.labelStopBits.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelStopBits.AutoSize = true;
+			this.labelStopBits.Location = new System.Drawing.Point(183, 8);
+			this.labelStopBits.Name = "labelStopBits";
+			this.labelStopBits.Size = new System.Drawing.Size(52, 13);
+			this.labelStopBits.TabIndex = 10;
+			this.labelStopBits.Text = "Stop Bits:";
 			// 
-			// portRefreshBtn
+			// comboBoxStopBits
 			// 
-			this.portRefreshBtn.Image = ((System.Drawing.Image)(resources.GetObject("portRefreshBtn.Image")));
-			this.portRefreshBtn.Location = new System.Drawing.Point(142, 20);
-			this.portRefreshBtn.Name = "portRefreshBtn";
-			this.portRefreshBtn.Size = new System.Drawing.Size(28, 23);
-			this.portRefreshBtn.TabIndex = 2;
-			this.portRefreshBtn.UseVisualStyleBackColor = true;
-			this.portRefreshBtn.Click += new System.EventHandler(this.portRefreshBtn_Click);
+			this.comboBoxStopBits.FormattingEnabled = true;
+			this.comboBoxStopBits.Items.AddRange(new object[] {
+            "1",
+            "2"});
+			this.comboBoxStopBits.Location = new System.Drawing.Point(241, 3);
+			this.comboBoxStopBits.Name = "comboBoxStopBits";
+			this.comboBoxStopBits.Size = new System.Drawing.Size(73, 21);
+			this.comboBoxStopBits.TabIndex = 11;
 			// 
-			// comPortCb
+			// labelParity
 			// 
-			this.comPortCb.FormattingEnabled = true;
-			this.comPortCb.Location = new System.Drawing.Point(68, 22);
-			this.comPortCb.Name = "comPortCb";
-			this.comPortCb.Size = new System.Drawing.Size(68, 21);
-			this.comPortCb.TabIndex = 1;
+			this.labelParity.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelParity.AutoSize = true;
+			this.labelParity.Location = new System.Drawing.Point(183, 36);
+			this.labelParity.Name = "labelParity";
+			this.labelParity.Size = new System.Drawing.Size(36, 13);
+			this.labelParity.TabIndex = 5;
+			this.labelParity.Text = "Parity:";
 			// 
-			// comPortLbl
+			// comboBoxParity
 			// 
-			this.comPortLbl.AutoSize = true;
-			this.comPortLbl.Location = new System.Drawing.Point(6, 25);
-			this.comPortLbl.Name = "comPortLbl";
-			this.comPortLbl.Size = new System.Drawing.Size(56, 13);
-			this.comPortLbl.TabIndex = 0;
-			this.comPortLbl.Text = "COM Port:";
+			this.comboBoxParity.FormattingEnabled = true;
+			this.comboBoxParity.Items.AddRange(new object[] {
+            "Even",
+            "Odd",
+            "None"});
+			this.comboBoxParity.Location = new System.Drawing.Point(241, 32);
+			this.comboBoxParity.Name = "comboBoxParity";
+			this.comboBoxParity.Size = new System.Drawing.Size(73, 21);
+			this.comboBoxParity.TabIndex = 6;
 			// 
-			// dataTabControl
+			// labelMode
 			// 
-			this.dataTabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.dataTabControl.Controls.Add(this.inputRegistersTabPage);
-			this.dataTabControl.Controls.Add(this.holdingRegistersTabPage);
-			this.dataTabControl.Controls.Add(this.coilsTabPage);
-			this.dataTabControl.Location = new System.Drawing.Point(12, 146);
-			this.dataTabControl.Name = "dataTabControl";
-			this.dataTabControl.SelectedIndex = 0;
-			this.dataTabControl.Size = new System.Drawing.Size(623, 141);
-			this.dataTabControl.TabIndex = 2;
+			this.labelMode.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelMode.AutoSize = true;
+			this.labelMode.Location = new System.Drawing.Point(183, 63);
+			this.labelMode.Name = "labelMode";
+			this.labelMode.Size = new System.Drawing.Size(37, 13);
+			this.labelMode.TabIndex = 7;
+			this.labelMode.Text = "Mode:";
 			// 
-			// inputRegistersTabPage
+			// comboBoxMode
 			// 
-			this.inputRegistersTabPage.Controls.Add(this.inputPollBtn);
-			this.inputRegistersTabPage.Controls.Add(this.inputRegStringLenTb);
-			this.inputRegistersTabPage.Controls.Add(this.inputRegStringLenLbl);
-			this.inputRegistersTabPage.Controls.Add(this.inputRegReadBtn);
-			this.inputRegistersTabPage.Controls.Add(this.inputRegDataTb);
-			this.inputRegistersTabPage.Controls.Add(this.inputRegDataLbl);
-			this.inputRegistersTabPage.Controls.Add(this.inputRegFormatLbl);
-			this.inputRegistersTabPage.Controls.Add(this.inputRegFormatCb);
-			this.inputRegistersTabPage.Controls.Add(this.inputRegAddrTb);
-			this.inputRegistersTabPage.Controls.Add(this.inputRegAddrLbl);
-			this.inputRegistersTabPage.Location = new System.Drawing.Point(4, 22);
-			this.inputRegistersTabPage.Name = "inputRegistersTabPage";
-			this.inputRegistersTabPage.Padding = new System.Windows.Forms.Padding(3);
-			this.inputRegistersTabPage.Size = new System.Drawing.Size(615, 115);
-			this.inputRegistersTabPage.TabIndex = 0;
-			this.inputRegistersTabPage.Text = "Input Registers";
-			this.inputRegistersTabPage.UseVisualStyleBackColor = true;
+			this.comboBoxMode.FormattingEnabled = true;
+			this.comboBoxMode.Items.AddRange(new object[] {
+            "RTU",
+            "ASCII"});
+			this.comboBoxMode.Location = new System.Drawing.Point(241, 59);
+			this.comboBoxMode.Name = "comboBoxMode";
+			this.comboBoxMode.Size = new System.Drawing.Size(73, 21);
+			this.comboBoxMode.TabIndex = 8;
 			// 
-			// inputPollBtn
+			// radioButtonOpen
 			// 
-			this.inputPollBtn.Enabled = false;
-			this.inputPollBtn.Location = new System.Drawing.Point(376, 60);
-			this.inputPollBtn.Name = "inputPollBtn";
-			this.inputPollBtn.Size = new System.Drawing.Size(75, 23);
-			this.inputPollBtn.TabIndex = 9;
-			this.inputPollBtn.Text = "Poll";
-			this.inputPollBtn.UseVisualStyleBackColor = true;
-			this.inputPollBtn.Click += new System.EventHandler(this.inputPollBtn_Click);
+			this.radioButtonOpen.AutoSize = true;
+			this.radioButtonOpen.Location = new System.Drawing.Point(320, 3);
+			this.radioButtonOpen.Name = "radioButtonOpen";
+			this.radioButtonOpen.Size = new System.Drawing.Size(51, 17);
+			this.radioButtonOpen.TabIndex = 12;
+			this.radioButtonOpen.Text = "Open";
+			this.radioButtonOpen.UseVisualStyleBackColor = true;
+			this.radioButtonOpen.CheckedChanged += new System.EventHandler(this.RadioButton_CheckedChanged);
 			// 
-			// inputRegStringLenTb
+			// radioButtonClosed
 			// 
-			this.inputRegStringLenTb.Enabled = false;
-			this.inputRegStringLenTb.Location = new System.Drawing.Point(505, 16);
-			this.inputRegStringLenTb.Name = "inputRegStringLenTb";
-			this.inputRegStringLenTb.Size = new System.Drawing.Size(101, 20);
-			this.inputRegStringLenTb.TabIndex = 8;
+			this.radioButtonClosed.AutoSize = true;
+			this.radioButtonClosed.Checked = true;
+			this.radioButtonClosed.Location = new System.Drawing.Point(320, 32);
+			this.radioButtonClosed.Name = "radioButtonClosed";
+			this.radioButtonClosed.Size = new System.Drawing.Size(57, 17);
+			this.radioButtonClosed.TabIndex = 13;
+			this.radioButtonClosed.TabStop = true;
+			this.radioButtonClosed.Text = "Closed";
+			this.radioButtonClosed.UseVisualStyleBackColor = true;
+			this.radioButtonClosed.CheckedChanged += new System.EventHandler(this.RadioButton_CheckedChanged);
 			// 
-			// inputRegStringLenLbl
+			// tabControlData
 			// 
-			this.inputRegStringLenLbl.AutoSize = true;
-			this.inputRegStringLenLbl.Location = new System.Drawing.Point(426, 19);
-			this.inputRegStringLenLbl.Name = "inputRegStringLenLbl";
-			this.inputRegStringLenLbl.Size = new System.Drawing.Size(73, 13);
-			this.inputRegStringLenLbl.TabIndex = 7;
-			this.inputRegStringLenLbl.Text = "String Length:";
+			this.tableLayoutPanelCommunication.SetColumnSpan(this.tabControlData, 2);
+			this.tabControlData.Controls.Add(this.tabPageCoils);
+			this.tabControlData.Controls.Add(this.tabPageInputRegisters);
+			this.tabControlData.Controls.Add(this.tabPageHoldingRegisters);
+			this.tabControlData.Dock = System.Windows.Forms.DockStyle.Top;
+			this.tabControlData.Location = new System.Drawing.Point(3, 29);
+			this.tabControlData.Name = "tabControlData";
+			this.tabControlData.SelectedIndex = 0;
+			this.tabControlData.Size = new System.Drawing.Size(375, 165);
+			this.tabControlData.TabIndex = 2;
 			// 
-			// inputRegReadBtn
+			// tabPageCoils
 			// 
-			this.inputRegReadBtn.Enabled = false;
-			this.inputRegReadBtn.Location = new System.Drawing.Point(295, 60);
-			this.inputRegReadBtn.Name = "inputRegReadBtn";
-			this.inputRegReadBtn.Size = new System.Drawing.Size(75, 23);
-			this.inputRegReadBtn.TabIndex = 6;
-			this.inputRegReadBtn.Text = "Read";
-			this.inputRegReadBtn.UseVisualStyleBackColor = true;
-			this.inputRegReadBtn.Click += new System.EventHandler(this.inputRegReadBtn_Click);
+			this.tabPageCoils.Controls.Add(this.tableLayoutPanelCoils);
+			this.tabPageCoils.Location = new System.Drawing.Point(4, 22);
+			this.tabPageCoils.Name = "tabPageCoils";
+			this.tabPageCoils.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPageCoils.Size = new System.Drawing.Size(367, 139);
+			this.tabPageCoils.TabIndex = 2;
+			this.tabPageCoils.Text = "Coils";
+			this.tabPageCoils.UseVisualStyleBackColor = true;
 			// 
-			// inputRegDataTb
+			// tableLayoutPanelCoils
 			// 
-			this.inputRegDataTb.Location = new System.Drawing.Point(91, 62);
-			this.inputRegDataTb.Name = "inputRegDataTb";
-			this.inputRegDataTb.Size = new System.Drawing.Size(158, 20);
-			this.inputRegDataTb.TabIndex = 5;
+			this.tableLayoutPanelCoils.AutoSize = true;
+			this.tableLayoutPanelCoils.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.tableLayoutPanelCoils.ColumnCount = 2;
+			this.tableLayoutPanelCoils.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelCoils.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelCoils.Controls.Add(this.labelCoilValue, 0, 1);
+			this.tableLayoutPanelCoils.Controls.Add(this.labelCoilAddress, 0, 0);
+			this.tableLayoutPanelCoils.Controls.Add(this.textBoxCoilAddr, 1, 0);
+			this.tableLayoutPanelCoils.Controls.Add(this.buttonCoilRead, 0, 3);
+			this.tableLayoutPanelCoils.Controls.Add(this.buttonCoilWrite, 1, 3);
+			this.tableLayoutPanelCoils.Controls.Add(this.radioButtonCoilTrue, 1, 1);
+			this.tableLayoutPanelCoils.Controls.Add(this.radioButtonCoilFalse, 1, 2);
+			this.tableLayoutPanelCoils.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.tableLayoutPanelCoils.Location = new System.Drawing.Point(3, 3);
+			this.tableLayoutPanelCoils.Name = "tableLayoutPanelCoils";
+			this.tableLayoutPanelCoils.RowCount = 4;
+			this.tableLayoutPanelCoils.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelCoils.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelCoils.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelCoils.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelCoils.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+			this.tableLayoutPanelCoils.Size = new System.Drawing.Size(361, 133);
+			this.tableLayoutPanelCoils.TabIndex = 7;
 			// 
-			// inputRegDataLbl
+			// labelCoilValue
 			// 
-			this.inputRegDataLbl.AutoSize = true;
-			this.inputRegDataLbl.Location = new System.Drawing.Point(6, 65);
-			this.inputRegDataLbl.Name = "inputRegDataLbl";
-			this.inputRegDataLbl.Size = new System.Drawing.Size(79, 13);
-			this.inputRegDataLbl.TabIndex = 4;
-			this.inputRegDataLbl.Text = "Register Value:";
+			this.labelCoilValue.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelCoilValue.AutoSize = true;
+			this.labelCoilValue.Location = new System.Drawing.Point(3, 31);
+			this.labelCoilValue.Name = "labelCoilValue";
+			this.labelCoilValue.Size = new System.Drawing.Size(37, 13);
+			this.labelCoilValue.TabIndex = 6;
+			this.labelCoilValue.Text = "Value:";
 			// 
-			// inputRegFormatLbl
+			// labelCoilAddress
 			// 
-			this.inputRegFormatLbl.AutoSize = true;
-			this.inputRegFormatLbl.Location = new System.Drawing.Point(221, 19);
-			this.inputRegFormatLbl.Name = "inputRegFormatLbl";
-			this.inputRegFormatLbl.Size = new System.Drawing.Size(68, 13);
-			this.inputRegFormatLbl.TabIndex = 3;
-			this.inputRegFormatLbl.Text = "Data Format:";
+			this.labelCoilAddress.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelCoilAddress.AutoSize = true;
+			this.labelCoilAddress.Location = new System.Drawing.Point(3, 6);
+			this.labelCoilAddress.Name = "labelCoilAddress";
+			this.labelCoilAddress.Size = new System.Drawing.Size(48, 13);
+			this.labelCoilAddress.TabIndex = 0;
+			this.labelCoilAddress.Text = "Address:";
 			// 
-			// inputRegFormatCb
+			// textBoxCoilAddr
 			// 
-			this.inputRegFormatCb.FormattingEnabled = true;
-			this.inputRegFormatCb.Items.AddRange(new object[] {
+			this.textBoxCoilAddr.Location = new System.Drawing.Point(84, 3);
+			this.textBoxCoilAddr.Name = "textBoxCoilAddr";
+			this.textBoxCoilAddr.Size = new System.Drawing.Size(100, 20);
+			this.textBoxCoilAddr.TabIndex = 1;
+			// 
+			// buttonCoilRead
+			// 
+			this.buttonCoilRead.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.buttonCoilRead.Enabled = false;
+			this.buttonCoilRead.Location = new System.Drawing.Point(3, 107);
+			this.buttonCoilRead.Name = "buttonCoilRead";
+			this.buttonCoilRead.Size = new System.Drawing.Size(75, 23);
+			this.buttonCoilRead.TabIndex = 4;
+			this.buttonCoilRead.Text = "Read";
+			this.buttonCoilRead.UseVisualStyleBackColor = true;
+			this.buttonCoilRead.Click += new System.EventHandler(this.ButtonCoilRead_Click);
+			// 
+			// buttonCoilWrite
+			// 
+			this.buttonCoilWrite.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.buttonCoilWrite.Enabled = false;
+			this.buttonCoilWrite.Location = new System.Drawing.Point(84, 107);
+			this.buttonCoilWrite.Name = "buttonCoilWrite";
+			this.buttonCoilWrite.Size = new System.Drawing.Size(75, 23);
+			this.buttonCoilWrite.TabIndex = 5;
+			this.buttonCoilWrite.Text = "Write";
+			this.buttonCoilWrite.UseVisualStyleBackColor = true;
+			this.buttonCoilWrite.Click += new System.EventHandler(this.ButtonCoilWrite_Click);
+			// 
+			// radioButtonCoilTrue
+			// 
+			this.radioButtonCoilTrue.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.radioButtonCoilTrue.AutoSize = true;
+			this.radioButtonCoilTrue.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.radioButtonCoilTrue.Checked = true;
+			this.radioButtonCoilTrue.Location = new System.Drawing.Point(84, 29);
+			this.radioButtonCoilTrue.Name = "radioButtonCoilTrue";
+			this.radioButtonCoilTrue.Size = new System.Drawing.Size(47, 17);
+			this.radioButtonCoilTrue.TabIndex = 2;
+			this.radioButtonCoilTrue.TabStop = true;
+			this.radioButtonCoilTrue.Text = "True";
+			this.radioButtonCoilTrue.UseVisualStyleBackColor = true;
+			// 
+			// radioButtonCoilFalse
+			// 
+			this.radioButtonCoilFalse.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.radioButtonCoilFalse.AutoSize = true;
+			this.radioButtonCoilFalse.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.radioButtonCoilFalse.Location = new System.Drawing.Point(84, 52);
+			this.radioButtonCoilFalse.Name = "radioButtonCoilFalse";
+			this.radioButtonCoilFalse.Size = new System.Drawing.Size(50, 17);
+			this.radioButtonCoilFalse.TabIndex = 3;
+			this.radioButtonCoilFalse.Text = "False";
+			this.radioButtonCoilFalse.UseVisualStyleBackColor = true;
+			// 
+			// tabPageInputRegisters
+			// 
+			this.tabPageInputRegisters.Controls.Add(this.tableLayoutPanelInputRegisters);
+			this.tabPageInputRegisters.Location = new System.Drawing.Point(4, 22);
+			this.tabPageInputRegisters.Name = "tabPageInputRegisters";
+			this.tabPageInputRegisters.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPageInputRegisters.Size = new System.Drawing.Size(367, 139);
+			this.tabPageInputRegisters.TabIndex = 0;
+			this.tabPageInputRegisters.Text = "Input Registers";
+			this.tabPageInputRegisters.UseVisualStyleBackColor = true;
+			// 
+			// tableLayoutPanelInputRegisters
+			// 
+			this.tableLayoutPanelInputRegisters.AutoSize = true;
+			this.tableLayoutPanelInputRegisters.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.tableLayoutPanelInputRegisters.ColumnCount = 2;
+			this.tableLayoutPanelInputRegisters.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelInputRegisters.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelInputRegisters.Controls.Add(this.buttonInputRegisterPoll, 1, 4);
+			this.tableLayoutPanelInputRegisters.Controls.Add(this.labelInputRegisterAddress, 0, 0);
+			this.tableLayoutPanelInputRegisters.Controls.Add(this.buttonInputRegisterRead, 0, 4);
+			this.tableLayoutPanelInputRegisters.Controls.Add(this.textBoxInputRegisterStringLength, 1, 2);
+			this.tableLayoutPanelInputRegisters.Controls.Add(this.textBoxInputRegisterAddress, 1, 0);
+			this.tableLayoutPanelInputRegisters.Controls.Add(this.labelInputRegisterStringLength, 0, 2);
+			this.tableLayoutPanelInputRegisters.Controls.Add(this.comboBoxInputRegisterFormat, 1, 1);
+			this.tableLayoutPanelInputRegisters.Controls.Add(this.labelInputRegisterDataFormat, 0, 1);
+			this.tableLayoutPanelInputRegisters.Controls.Add(this.labelInputRegisterData, 0, 3);
+			this.tableLayoutPanelInputRegisters.Controls.Add(this.textBoxInputRegisterData, 1, 3);
+			this.tableLayoutPanelInputRegisters.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.tableLayoutPanelInputRegisters.Location = new System.Drawing.Point(3, 3);
+			this.tableLayoutPanelInputRegisters.Name = "tableLayoutPanelInputRegisters";
+			this.tableLayoutPanelInputRegisters.RowCount = 5;
+			this.tableLayoutPanelInputRegisters.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelInputRegisters.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelInputRegisters.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelInputRegisters.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelInputRegisters.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelInputRegisters.Size = new System.Drawing.Size(361, 133);
+			this.tableLayoutPanelInputRegisters.TabIndex = 7;
+			// 
+			// buttonInputRegisterPoll
+			// 
+			this.buttonInputRegisterPoll.Enabled = false;
+			this.buttonInputRegisterPoll.Location = new System.Drawing.Point(84, 108);
+			this.buttonInputRegisterPoll.Name = "buttonInputRegisterPoll";
+			this.buttonInputRegisterPoll.Size = new System.Drawing.Size(75, 23);
+			this.buttonInputRegisterPoll.TabIndex = 9;
+			this.buttonInputRegisterPoll.Text = "Poll";
+			this.buttonInputRegisterPoll.UseVisualStyleBackColor = true;
+			this.buttonInputRegisterPoll.Click += new System.EventHandler(this.ButtonInputPoll_Click);
+			// 
+			// labelInputRegisterAddress
+			// 
+			this.labelInputRegisterAddress.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelInputRegisterAddress.AutoSize = true;
+			this.labelInputRegisterAddress.Location = new System.Drawing.Point(3, 6);
+			this.labelInputRegisterAddress.Name = "labelInputRegisterAddress";
+			this.labelInputRegisterAddress.Size = new System.Drawing.Size(48, 13);
+			this.labelInputRegisterAddress.TabIndex = 0;
+			this.labelInputRegisterAddress.Text = "Address:";
+			// 
+			// buttonInputRegisterRead
+			// 
+			this.buttonInputRegisterRead.Enabled = false;
+			this.buttonInputRegisterRead.Location = new System.Drawing.Point(3, 108);
+			this.buttonInputRegisterRead.Name = "buttonInputRegisterRead";
+			this.buttonInputRegisterRead.Size = new System.Drawing.Size(75, 23);
+			this.buttonInputRegisterRead.TabIndex = 6;
+			this.buttonInputRegisterRead.Text = "Read";
+			this.buttonInputRegisterRead.UseVisualStyleBackColor = true;
+			this.buttonInputRegisterRead.Click += new System.EventHandler(this.ButtonInputRegisterRead_Click);
+			// 
+			// textBoxInputRegisterStringLength
+			// 
+			this.textBoxInputRegisterStringLength.Enabled = false;
+			this.textBoxInputRegisterStringLength.Location = new System.Drawing.Point(84, 56);
+			this.textBoxInputRegisterStringLength.Name = "textBoxInputRegisterStringLength";
+			this.textBoxInputRegisterStringLength.Size = new System.Drawing.Size(101, 20);
+			this.textBoxInputRegisterStringLength.TabIndex = 8;
+			// 
+			// textBoxInputRegisterAddress
+			// 
+			this.textBoxInputRegisterAddress.Location = new System.Drawing.Point(84, 3);
+			this.textBoxInputRegisterAddress.Name = "textBoxInputRegisterAddress";
+			this.textBoxInputRegisterAddress.Size = new System.Drawing.Size(100, 20);
+			this.textBoxInputRegisterAddress.TabIndex = 1;
+			// 
+			// labelInputRegisterStringLength
+			// 
+			this.labelInputRegisterStringLength.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelInputRegisterStringLength.AutoSize = true;
+			this.labelInputRegisterStringLength.Location = new System.Drawing.Point(3, 59);
+			this.labelInputRegisterStringLength.Name = "labelInputRegisterStringLength";
+			this.labelInputRegisterStringLength.Size = new System.Drawing.Size(73, 13);
+			this.labelInputRegisterStringLength.TabIndex = 7;
+			this.labelInputRegisterStringLength.Text = "String Length:";
+			// 
+			// comboBoxInputRegisterFormat
+			// 
+			this.comboBoxInputRegisterFormat.FormattingEnabled = true;
+			this.comboBoxInputRegisterFormat.Items.AddRange(new object[] {
             "Float",
             "Int32",
             "UInt32",
             "Int16",
             "UInt16",
             "String"});
-			this.inputRegFormatCb.Location = new System.Drawing.Point(295, 16);
-			this.inputRegFormatCb.Name = "inputRegFormatCb";
-			this.inputRegFormatCb.Size = new System.Drawing.Size(121, 21);
-			this.inputRegFormatCb.TabIndex = 2;
-			this.inputRegFormatCb.SelectedIndexChanged += new System.EventHandler(this.FormatCb_SelectedIndexChanged);
+			this.comboBoxInputRegisterFormat.Location = new System.Drawing.Point(84, 29);
+			this.comboBoxInputRegisterFormat.Name = "comboBoxInputRegisterFormat";
+			this.comboBoxInputRegisterFormat.Size = new System.Drawing.Size(121, 21);
+			this.comboBoxInputRegisterFormat.TabIndex = 2;
+			this.comboBoxInputRegisterFormat.SelectedIndexChanged += new System.EventHandler(this.ComboBoxFormat_SelectedIndexChanged);
 			// 
-			// inputRegAddrTb
+			// labelInputRegisterDataFormat
 			// 
-			this.inputRegAddrTb.Location = new System.Drawing.Point(102, 16);
-			this.inputRegAddrTb.Name = "inputRegAddrTb";
-			this.inputRegAddrTb.Size = new System.Drawing.Size(100, 20);
-			this.inputRegAddrTb.TabIndex = 1;
+			this.labelInputRegisterDataFormat.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelInputRegisterDataFormat.AutoSize = true;
+			this.labelInputRegisterDataFormat.Location = new System.Drawing.Point(3, 33);
+			this.labelInputRegisterDataFormat.Name = "labelInputRegisterDataFormat";
+			this.labelInputRegisterDataFormat.Size = new System.Drawing.Size(68, 13);
+			this.labelInputRegisterDataFormat.TabIndex = 3;
+			this.labelInputRegisterDataFormat.Text = "Data Format:";
 			// 
-			// inputRegAddrLbl
+			// labelInputRegisterData
 			// 
-			this.inputRegAddrLbl.AutoSize = true;
-			this.inputRegAddrLbl.Location = new System.Drawing.Point(6, 19);
-			this.inputRegAddrLbl.Name = "inputRegAddrLbl";
-			this.inputRegAddrLbl.Size = new System.Drawing.Size(90, 13);
-			this.inputRegAddrLbl.TabIndex = 0;
-			this.inputRegAddrLbl.Text = "Register Address:";
+			this.labelInputRegisterData.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelInputRegisterData.AutoSize = true;
+			this.labelInputRegisterData.Location = new System.Drawing.Point(3, 85);
+			this.labelInputRegisterData.Name = "labelInputRegisterData";
+			this.labelInputRegisterData.Size = new System.Drawing.Size(37, 13);
+			this.labelInputRegisterData.TabIndex = 4;
+			this.labelInputRegisterData.Text = "Value:";
 			// 
-			// holdingRegistersTabPage
+			// textBoxInputRegisterData
 			// 
-			this.holdingRegistersTabPage.Controls.Add(this.holdingRegStringLenTb);
-			this.holdingRegistersTabPage.Controls.Add(this.holdingRegStringLenLbl);
-			this.holdingRegistersTabPage.Controls.Add(this.holdingRegWriteBtn);
-			this.holdingRegistersTabPage.Controls.Add(this.holdingRegReadBtn);
-			this.holdingRegistersTabPage.Controls.Add(this.holdingRegDataTb);
-			this.holdingRegistersTabPage.Controls.Add(this.holdingRegDataLbl);
-			this.holdingRegistersTabPage.Controls.Add(this.holdingRegFormatCb);
-			this.holdingRegistersTabPage.Controls.Add(this.holdingRegFormatLbl);
-			this.holdingRegistersTabPage.Controls.Add(this.holdingRegAddrTb);
-			this.holdingRegistersTabPage.Controls.Add(this.holdingRegAddrLbl);
-			this.holdingRegistersTabPage.Location = new System.Drawing.Point(4, 22);
-			this.holdingRegistersTabPage.Name = "holdingRegistersTabPage";
-			this.holdingRegistersTabPage.Padding = new System.Windows.Forms.Padding(3);
-			this.holdingRegistersTabPage.Size = new System.Drawing.Size(615, 115);
-			this.holdingRegistersTabPage.TabIndex = 1;
-			this.holdingRegistersTabPage.Text = "Holding Registers";
-			this.holdingRegistersTabPage.UseVisualStyleBackColor = true;
+			this.textBoxInputRegisterData.Location = new System.Drawing.Point(84, 82);
+			this.textBoxInputRegisterData.Name = "textBoxInputRegisterData";
+			this.textBoxInputRegisterData.Size = new System.Drawing.Size(141, 20);
+			this.textBoxInputRegisterData.TabIndex = 5;
 			// 
-			// holdingRegStringLenTb
+			// tabPageHoldingRegisters
 			// 
-			this.holdingRegStringLenTb.Enabled = false;
-			this.holdingRegStringLenTb.Location = new System.Drawing.Point(502, 16);
-			this.holdingRegStringLenTb.Name = "holdingRegStringLenTb";
-			this.holdingRegStringLenTb.Size = new System.Drawing.Size(100, 20);
-			this.holdingRegStringLenTb.TabIndex = 9;
+			this.tabPageHoldingRegisters.Controls.Add(this.tableLayoutPanelHoldingRegisters);
+			this.tabPageHoldingRegisters.Location = new System.Drawing.Point(4, 22);
+			this.tabPageHoldingRegisters.Name = "tabPageHoldingRegisters";
+			this.tabPageHoldingRegisters.Padding = new System.Windows.Forms.Padding(3);
+			this.tabPageHoldingRegisters.Size = new System.Drawing.Size(367, 139);
+			this.tabPageHoldingRegisters.TabIndex = 1;
+			this.tabPageHoldingRegisters.Text = "Holding Registers";
+			this.tabPageHoldingRegisters.UseVisualStyleBackColor = true;
 			// 
-			// holdingRegStringLenLbl
+			// tableLayoutPanelHoldingRegisters
 			// 
-			this.holdingRegStringLenLbl.AutoSize = true;
-			this.holdingRegStringLenLbl.Location = new System.Drawing.Point(423, 19);
-			this.holdingRegStringLenLbl.Name = "holdingRegStringLenLbl";
-			this.holdingRegStringLenLbl.Size = new System.Drawing.Size(73, 13);
-			this.holdingRegStringLenLbl.TabIndex = 8;
-			this.holdingRegStringLenLbl.Text = "String Length:";
+			this.tableLayoutPanelHoldingRegisters.AutoSize = true;
+			this.tableLayoutPanelHoldingRegisters.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.tableLayoutPanelHoldingRegisters.ColumnCount = 2;
+			this.tableLayoutPanelHoldingRegisters.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelHoldingRegisters.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelHoldingRegisters.Controls.Add(this.buttonHoldingRegisterWrite, 1, 4);
+			this.tableLayoutPanelHoldingRegisters.Controls.Add(this.textBoxHoldingRegisterStringLength, 1, 2);
+			this.tableLayoutPanelHoldingRegisters.Controls.Add(this.buttonHoldingRegisterRead, 0, 4);
+			this.tableLayoutPanelHoldingRegisters.Controls.Add(this.labelHoldingRegisterAddress, 0, 0);
+			this.tableLayoutPanelHoldingRegisters.Controls.Add(this.textBoxHoldingRegisterData, 1, 3);
+			this.tableLayoutPanelHoldingRegisters.Controls.Add(this.labelHoldingRegisterStringLength, 0, 2);
+			this.tableLayoutPanelHoldingRegisters.Controls.Add(this.labelHoldingRegisterData, 0, 3);
+			this.tableLayoutPanelHoldingRegisters.Controls.Add(this.textBoxHoldingRegisterAddress, 1, 0);
+			this.tableLayoutPanelHoldingRegisters.Controls.Add(this.labelHoldingRegisterFormat, 0, 1);
+			this.tableLayoutPanelHoldingRegisters.Controls.Add(this.comboBoxHoldingRegisterFormat, 1, 1);
+			this.tableLayoutPanelHoldingRegisters.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.tableLayoutPanelHoldingRegisters.Location = new System.Drawing.Point(3, 3);
+			this.tableLayoutPanelHoldingRegisters.Name = "tableLayoutPanelHoldingRegisters";
+			this.tableLayoutPanelHoldingRegisters.RowCount = 5;
+			this.tableLayoutPanelHoldingRegisters.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelHoldingRegisters.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelHoldingRegisters.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelHoldingRegisters.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelHoldingRegisters.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelHoldingRegisters.Size = new System.Drawing.Size(361, 133);
+			this.tableLayoutPanelHoldingRegisters.TabIndex = 7;
 			// 
-			// holdingRegWriteBtn
+			// buttonHoldingRegisterWrite
 			// 
-			this.holdingRegWriteBtn.Enabled = false;
-			this.holdingRegWriteBtn.Location = new System.Drawing.Point(377, 61);
-			this.holdingRegWriteBtn.Name = "holdingRegWriteBtn";
-			this.holdingRegWriteBtn.Size = new System.Drawing.Size(75, 23);
-			this.holdingRegWriteBtn.TabIndex = 7;
-			this.holdingRegWriteBtn.Text = "Write";
-			this.holdingRegWriteBtn.UseVisualStyleBackColor = true;
-			this.holdingRegWriteBtn.Click += new System.EventHandler(this.holdingRegWriteBtn_Click);
+			this.buttonHoldingRegisterWrite.Enabled = false;
+			this.buttonHoldingRegisterWrite.Location = new System.Drawing.Point(84, 108);
+			this.buttonHoldingRegisterWrite.Name = "buttonHoldingRegisterWrite";
+			this.buttonHoldingRegisterWrite.Size = new System.Drawing.Size(75, 23);
+			this.buttonHoldingRegisterWrite.TabIndex = 7;
+			this.buttonHoldingRegisterWrite.Text = "Write";
+			this.buttonHoldingRegisterWrite.UseVisualStyleBackColor = true;
+			this.buttonHoldingRegisterWrite.Click += new System.EventHandler(this.ButtonHoldingRegisterWrite_Click);
 			// 
-			// holdingRegReadBtn
+			// textBoxHoldingRegisterStringLength
 			// 
-			this.holdingRegReadBtn.Enabled = false;
-			this.holdingRegReadBtn.Location = new System.Drawing.Point(296, 61);
-			this.holdingRegReadBtn.Name = "holdingRegReadBtn";
-			this.holdingRegReadBtn.Size = new System.Drawing.Size(75, 23);
-			this.holdingRegReadBtn.TabIndex = 6;
-			this.holdingRegReadBtn.Text = "Read";
-			this.holdingRegReadBtn.UseVisualStyleBackColor = true;
-			this.holdingRegReadBtn.Click += new System.EventHandler(this.holdingRegReadBtn_Click);
+			this.textBoxHoldingRegisterStringLength.Enabled = false;
+			this.textBoxHoldingRegisterStringLength.Location = new System.Drawing.Point(84, 56);
+			this.textBoxHoldingRegisterStringLength.Name = "textBoxHoldingRegisterStringLength";
+			this.textBoxHoldingRegisterStringLength.Size = new System.Drawing.Size(100, 20);
+			this.textBoxHoldingRegisterStringLength.TabIndex = 9;
 			// 
-			// holdingRegDataTb
+			// buttonHoldingRegisterRead
 			// 
-			this.holdingRegDataTb.Location = new System.Drawing.Point(91, 63);
-			this.holdingRegDataTb.Name = "holdingRegDataTb";
-			this.holdingRegDataTb.Size = new System.Drawing.Size(162, 20);
-			this.holdingRegDataTb.TabIndex = 5;
+			this.buttonHoldingRegisterRead.Enabled = false;
+			this.buttonHoldingRegisterRead.Location = new System.Drawing.Point(3, 108);
+			this.buttonHoldingRegisterRead.Name = "buttonHoldingRegisterRead";
+			this.buttonHoldingRegisterRead.Size = new System.Drawing.Size(75, 23);
+			this.buttonHoldingRegisterRead.TabIndex = 6;
+			this.buttonHoldingRegisterRead.Text = "Read";
+			this.buttonHoldingRegisterRead.UseVisualStyleBackColor = true;
+			this.buttonHoldingRegisterRead.Click += new System.EventHandler(this.ButtonHoldingRegisterRead_Click);
 			// 
-			// holdingRegDataLbl
+			// labelHoldingRegisterAddress
 			// 
-			this.holdingRegDataLbl.AutoSize = true;
-			this.holdingRegDataLbl.Location = new System.Drawing.Point(6, 66);
-			this.holdingRegDataLbl.Name = "holdingRegDataLbl";
-			this.holdingRegDataLbl.Size = new System.Drawing.Size(79, 13);
-			this.holdingRegDataLbl.TabIndex = 4;
-			this.holdingRegDataLbl.Text = "Register Value:";
+			this.labelHoldingRegisterAddress.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelHoldingRegisterAddress.AutoSize = true;
+			this.labelHoldingRegisterAddress.Location = new System.Drawing.Point(3, 6);
+			this.labelHoldingRegisterAddress.Name = "labelHoldingRegisterAddress";
+			this.labelHoldingRegisterAddress.Size = new System.Drawing.Size(48, 13);
+			this.labelHoldingRegisterAddress.TabIndex = 0;
+			this.labelHoldingRegisterAddress.Text = "Address:";
 			// 
-			// holdingRegFormatCb
+			// textBoxHoldingRegisterData
 			// 
-			this.holdingRegFormatCb.FormattingEnabled = true;
-			this.holdingRegFormatCb.Items.AddRange(new object[] {
+			this.textBoxHoldingRegisterData.Location = new System.Drawing.Point(84, 82);
+			this.textBoxHoldingRegisterData.Name = "textBoxHoldingRegisterData";
+			this.textBoxHoldingRegisterData.Size = new System.Drawing.Size(141, 20);
+			this.textBoxHoldingRegisterData.TabIndex = 5;
+			// 
+			// labelHoldingRegisterStringLength
+			// 
+			this.labelHoldingRegisterStringLength.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelHoldingRegisterStringLength.AutoSize = true;
+			this.labelHoldingRegisterStringLength.Location = new System.Drawing.Point(3, 59);
+			this.labelHoldingRegisterStringLength.Name = "labelHoldingRegisterStringLength";
+			this.labelHoldingRegisterStringLength.Size = new System.Drawing.Size(73, 13);
+			this.labelHoldingRegisterStringLength.TabIndex = 8;
+			this.labelHoldingRegisterStringLength.Text = "String Length:";
+			// 
+			// labelHoldingRegisterData
+			// 
+			this.labelHoldingRegisterData.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelHoldingRegisterData.AutoSize = true;
+			this.labelHoldingRegisterData.Location = new System.Drawing.Point(3, 85);
+			this.labelHoldingRegisterData.Name = "labelHoldingRegisterData";
+			this.labelHoldingRegisterData.Size = new System.Drawing.Size(37, 13);
+			this.labelHoldingRegisterData.TabIndex = 4;
+			this.labelHoldingRegisterData.Text = "Value:";
+			// 
+			// textBoxHoldingRegisterAddress
+			// 
+			this.textBoxHoldingRegisterAddress.Location = new System.Drawing.Point(84, 3);
+			this.textBoxHoldingRegisterAddress.Name = "textBoxHoldingRegisterAddress";
+			this.textBoxHoldingRegisterAddress.Size = new System.Drawing.Size(100, 20);
+			this.textBoxHoldingRegisterAddress.TabIndex = 1;
+			// 
+			// labelHoldingRegisterFormat
+			// 
+			this.labelHoldingRegisterFormat.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelHoldingRegisterFormat.AutoSize = true;
+			this.labelHoldingRegisterFormat.Location = new System.Drawing.Point(3, 33);
+			this.labelHoldingRegisterFormat.Name = "labelHoldingRegisterFormat";
+			this.labelHoldingRegisterFormat.Size = new System.Drawing.Size(68, 13);
+			this.labelHoldingRegisterFormat.TabIndex = 2;
+			this.labelHoldingRegisterFormat.Text = "Data Format:";
+			// 
+			// comboBoxHoldingRegisterFormat
+			// 
+			this.comboBoxHoldingRegisterFormat.FormattingEnabled = true;
+			this.comboBoxHoldingRegisterFormat.Items.AddRange(new object[] {
             "Float",
             "Int32",
             "UInt32",
             "Int16",
             "UInt16",
             "String"});
-			this.holdingRegFormatCb.Location = new System.Drawing.Point(296, 16);
-			this.holdingRegFormatCb.Name = "holdingRegFormatCb";
-			this.holdingRegFormatCb.Size = new System.Drawing.Size(121, 21);
-			this.holdingRegFormatCb.TabIndex = 3;
-			this.holdingRegFormatCb.SelectedIndexChanged += new System.EventHandler(this.FormatCb_SelectedIndexChanged);
+			this.comboBoxHoldingRegisterFormat.Location = new System.Drawing.Point(84, 29);
+			this.comboBoxHoldingRegisterFormat.Name = "comboBoxHoldingRegisterFormat";
+			this.comboBoxHoldingRegisterFormat.Size = new System.Drawing.Size(121, 21);
+			this.comboBoxHoldingRegisterFormat.TabIndex = 3;
+			this.comboBoxHoldingRegisterFormat.SelectedIndexChanged += new System.EventHandler(this.ComboBoxFormat_SelectedIndexChanged);
 			// 
-			// holdingRegFormatLbl
+			// labelSlaveAddress
 			// 
-			this.holdingRegFormatLbl.AutoSize = true;
-			this.holdingRegFormatLbl.Location = new System.Drawing.Point(222, 19);
-			this.holdingRegFormatLbl.Name = "holdingRegFormatLbl";
-			this.holdingRegFormatLbl.Size = new System.Drawing.Size(68, 13);
-			this.holdingRegFormatLbl.TabIndex = 2;
-			this.holdingRegFormatLbl.Text = "Data Format:";
+			this.labelSlaveAddress.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.labelSlaveAddress.AutoSize = true;
+			this.labelSlaveAddress.Location = new System.Drawing.Point(3, 6);
+			this.labelSlaveAddress.Name = "labelSlaveAddress";
+			this.labelSlaveAddress.Size = new System.Drawing.Size(95, 13);
+			this.labelSlaveAddress.TabIndex = 3;
+			this.labelSlaveAddress.Text = "Slave Address:  0x";
 			// 
-			// holdingRegAddrTb
+			// textBoxSlaveAddr
 			// 
-			this.holdingRegAddrTb.Location = new System.Drawing.Point(102, 16);
-			this.holdingRegAddrTb.Name = "holdingRegAddrTb";
-			this.holdingRegAddrTb.Size = new System.Drawing.Size(100, 20);
-			this.holdingRegAddrTb.TabIndex = 1;
+			this.textBoxSlaveAddr.Location = new System.Drawing.Point(104, 3);
+			this.textBoxSlaveAddr.Name = "textBoxSlaveAddr";
+			this.textBoxSlaveAddr.Size = new System.Drawing.Size(69, 20);
+			this.textBoxSlaveAddr.TabIndex = 4;
+			this.textBoxSlaveAddr.Leave += new System.EventHandler(this.TextBoxSlaveAddr_Leave);
 			// 
-			// holdingRegAddrLbl
+			// statusStrip1
 			// 
-			this.holdingRegAddrLbl.AutoSize = true;
-			this.holdingRegAddrLbl.Location = new System.Drawing.Point(6, 19);
-			this.holdingRegAddrLbl.Name = "holdingRegAddrLbl";
-			this.holdingRegAddrLbl.Size = new System.Drawing.Size(90, 13);
-			this.holdingRegAddrLbl.TabIndex = 0;
-			this.holdingRegAddrLbl.Text = "Register Address:";
+			this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.labelMainStatus,
+            this.toolStripStatusLabel1});
+			this.statusStrip1.Location = new System.Drawing.Point(0, 364);
+			this.statusStrip1.Name = "statusStrip1";
+			this.statusStrip1.Size = new System.Drawing.Size(387, 22);
+			this.statusStrip1.TabIndex = 5;
+			this.statusStrip1.Text = "statusStrip1";
 			// 
-			// coilsTabPage
+			// labelMainStatus
 			// 
-			this.coilsTabPage.Controls.Add(this.coilWriteBtn);
-			this.coilsTabPage.Controls.Add(this.coilReadBtn);
-			this.coilsTabPage.Controls.Add(this.coilFalseRadioBtn);
-			this.coilsTabPage.Controls.Add(this.coilTrueRadioBtn);
-			this.coilsTabPage.Controls.Add(this.coilAddrTb);
-			this.coilsTabPage.Controls.Add(this.coilAddrLbl);
-			this.coilsTabPage.Location = new System.Drawing.Point(4, 22);
-			this.coilsTabPage.Name = "coilsTabPage";
-			this.coilsTabPage.Padding = new System.Windows.Forms.Padding(3);
-			this.coilsTabPage.Size = new System.Drawing.Size(615, 115);
-			this.coilsTabPage.TabIndex = 2;
-			this.coilsTabPage.Text = "Coils";
-			this.coilsTabPage.UseVisualStyleBackColor = true;
+			this.labelMainStatus.Name = "labelMainStatus";
+			this.labelMainStatus.Size = new System.Drawing.Size(0, 17);
 			// 
-			// coilWriteBtn
+			// toolStripStatusLabel1
 			// 
-			this.coilWriteBtn.Enabled = false;
-			this.coilWriteBtn.Location = new System.Drawing.Point(290, 19);
-			this.coilWriteBtn.Name = "coilWriteBtn";
-			this.coilWriteBtn.Size = new System.Drawing.Size(75, 23);
-			this.coilWriteBtn.TabIndex = 5;
-			this.coilWriteBtn.Text = "Write";
-			this.coilWriteBtn.UseVisualStyleBackColor = true;
-			this.coilWriteBtn.Click += new System.EventHandler(this.coilWriteBtn_Click);
+			this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+			this.toolStripStatusLabel1.Size = new System.Drawing.Size(39, 17);
+			this.toolStripStatusLabel1.Text = "Ready";
 			// 
-			// coilReadBtn
+			// groupBoxCommunication
 			// 
-			this.coilReadBtn.Enabled = false;
-			this.coilReadBtn.Location = new System.Drawing.Point(209, 19);
-			this.coilReadBtn.Name = "coilReadBtn";
-			this.coilReadBtn.Size = new System.Drawing.Size(75, 23);
-			this.coilReadBtn.TabIndex = 4;
-			this.coilReadBtn.Text = "Read";
-			this.coilReadBtn.UseVisualStyleBackColor = true;
-			this.coilReadBtn.Click += new System.EventHandler(this.coilReadBtn_Click);
+			this.groupBoxCommunication.AutoSize = true;
+			this.groupBoxCommunication.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.groupBoxCommunication.Controls.Add(this.tableLayoutPanelCommunication);
+			this.groupBoxCommunication.Dock = System.Windows.Forms.DockStyle.Top;
+			this.groupBoxCommunication.Location = new System.Drawing.Point(0, 126);
+			this.groupBoxCommunication.Name = "groupBoxCommunication";
+			this.groupBoxCommunication.Size = new System.Drawing.Size(387, 216);
+			this.groupBoxCommunication.TabIndex = 6;
+			this.groupBoxCommunication.TabStop = false;
+			this.groupBoxCommunication.Text = "Communication";
 			// 
-			// coilFalseRadioBtn
+			// tableLayoutPanelCommunication
 			// 
-			this.coilFalseRadioBtn.AutoSize = true;
-			this.coilFalseRadioBtn.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.coilFalseRadioBtn.Location = new System.Drawing.Point(27, 77);
-			this.coilFalseRadioBtn.Name = "coilFalseRadioBtn";
-			this.coilFalseRadioBtn.Size = new System.Drawing.Size(50, 17);
-			this.coilFalseRadioBtn.TabIndex = 3;
-			this.coilFalseRadioBtn.Text = "False";
-			this.coilFalseRadioBtn.UseVisualStyleBackColor = true;
-			// 
-			// coilTrueRadioBtn
-			// 
-			this.coilTrueRadioBtn.AutoSize = true;
-			this.coilTrueRadioBtn.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.coilTrueRadioBtn.Checked = true;
-			this.coilTrueRadioBtn.Location = new System.Drawing.Point(30, 54);
-			this.coilTrueRadioBtn.Name = "coilTrueRadioBtn";
-			this.coilTrueRadioBtn.Size = new System.Drawing.Size(47, 17);
-			this.coilTrueRadioBtn.TabIndex = 2;
-			this.coilTrueRadioBtn.TabStop = true;
-			this.coilTrueRadioBtn.Text = "True";
-			this.coilTrueRadioBtn.UseVisualStyleBackColor = true;
-			// 
-			// coilAddrTb
-			// 
-			this.coilAddrTb.Location = new System.Drawing.Point(80, 21);
-			this.coilAddrTb.Name = "coilAddrTb";
-			this.coilAddrTb.Size = new System.Drawing.Size(100, 20);
-			this.coilAddrTb.TabIndex = 1;
-			// 
-			// coilAddrLbl
-			// 
-			this.coilAddrLbl.AutoSize = true;
-			this.coilAddrLbl.Location = new System.Drawing.Point(6, 24);
-			this.coilAddrLbl.Name = "coilAddrLbl";
-			this.coilAddrLbl.Size = new System.Drawing.Size(68, 13);
-			this.coilAddrLbl.TabIndex = 0;
-			this.coilAddrLbl.Text = "Coil Address:";
-			// 
-			// slaveAddrLbl
-			// 
-			this.slaveAddrLbl.AutoSize = true;
-			this.slaveAddrLbl.Location = new System.Drawing.Point(6, 123);
-			this.slaveAddrLbl.Name = "slaveAddrLbl";
-			this.slaveAddrLbl.Size = new System.Drawing.Size(95, 13);
-			this.slaveAddrLbl.TabIndex = 3;
-			this.slaveAddrLbl.Text = "Slave Address:  0x";
-			// 
-			// slaveAddrTb
-			// 
-			this.slaveAddrTb.Location = new System.Drawing.Point(107, 120);
-			this.slaveAddrTb.Name = "slaveAddrTb";
-			this.slaveAddrTb.Size = new System.Drawing.Size(69, 20);
-			this.slaveAddrTb.TabIndex = 4;
-			this.slaveAddrTb.Leave += new System.EventHandler(this.slaveAddrTb_Leave);
-			// 
-			// mainStatusStrip
-			// 
-			this.mainStatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mainStatusLbl});
-			this.mainStatusStrip.Location = new System.Drawing.Point(0, 290);
-			this.mainStatusStrip.Name = "mainStatusStrip";
-			this.mainStatusStrip.Size = new System.Drawing.Size(647, 22);
-			this.mainStatusStrip.TabIndex = 5;
-			this.mainStatusStrip.Text = "statusStrip1";
-			// 
-			// mainStatusLbl
-			// 
-			this.mainStatusLbl.Name = "mainStatusLbl";
-			this.mainStatusLbl.Size = new System.Drawing.Size(0, 17);
+			this.tableLayoutPanelCommunication.AutoSize = true;
+			this.tableLayoutPanelCommunication.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+			this.tableLayoutPanelCommunication.ColumnCount = 2;
+			this.tableLayoutPanelCommunication.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelCommunication.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+			this.tableLayoutPanelCommunication.Controls.Add(this.textBoxSlaveAddr, 1, 0);
+			this.tableLayoutPanelCommunication.Controls.Add(this.labelSlaveAddress, 0, 0);
+			this.tableLayoutPanelCommunication.Controls.Add(this.tabControlData, 0, 1);
+			this.tableLayoutPanelCommunication.Dock = System.Windows.Forms.DockStyle.Top;
+			this.tableLayoutPanelCommunication.Location = new System.Drawing.Point(3, 16);
+			this.tableLayoutPanelCommunication.Name = "tableLayoutPanelCommunication";
+			this.tableLayoutPanelCommunication.RowCount = 2;
+			this.tableLayoutPanelCommunication.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelCommunication.RowStyles.Add(new System.Windows.Forms.RowStyle());
+			this.tableLayoutPanelCommunication.Size = new System.Drawing.Size(381, 197);
+			this.tableLayoutPanelCommunication.TabIndex = 0;
 			// 
 			// Modbusgui
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(647, 312);
-			this.Controls.Add(this.mainStatusStrip);
-			this.Controls.Add(this.slaveAddrTb);
-			this.Controls.Add(this.slaveAddrLbl);
-			this.Controls.Add(this.dataTabControl);
-			this.Controls.Add(this.configGroupBox);
+			this.ClientSize = new System.Drawing.Size(387, 386);
+			this.Controls.Add(this.groupBoxCommunication);
+			this.Controls.Add(this.groupBoxSerialPort);
+			this.Controls.Add(this.statusStrip1);
 			this.Controls.Add(this.mainMenuStrip);
 			this.MainMenuStrip = this.mainMenuStrip;
+			this.MaximizeBox = false;
 			this.Name = "Modbusgui";
-			this.Text = "Modbus Register Interface";
+			this.Text = "Modbus Interface";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
 			this.mainMenuStrip.ResumeLayout(false);
 			this.mainMenuStrip.PerformLayout();
-			this.configGroupBox.ResumeLayout(false);
-			this.configGroupBox.PerformLayout();
-			this.dataTabControl.ResumeLayout(false);
-			this.inputRegistersTabPage.ResumeLayout(false);
-			this.inputRegistersTabPage.PerformLayout();
-			this.holdingRegistersTabPage.ResumeLayout(false);
-			this.holdingRegistersTabPage.PerformLayout();
-			this.coilsTabPage.ResumeLayout(false);
-			this.coilsTabPage.PerformLayout();
-			this.mainStatusStrip.ResumeLayout(false);
-			this.mainStatusStrip.PerformLayout();
+			this.groupBoxSerialPort.ResumeLayout(false);
+			this.groupBoxSerialPort.PerformLayout();
+			this.tableLayoutPanelSerialPort.ResumeLayout(false);
+			this.tableLayoutPanelSerialPort.PerformLayout();
+			this.tabControlData.ResumeLayout(false);
+			this.tabPageCoils.ResumeLayout(false);
+			this.tabPageCoils.PerformLayout();
+			this.tableLayoutPanelCoils.ResumeLayout(false);
+			this.tableLayoutPanelCoils.PerformLayout();
+			this.tabPageInputRegisters.ResumeLayout(false);
+			this.tabPageInputRegisters.PerformLayout();
+			this.tableLayoutPanelInputRegisters.ResumeLayout(false);
+			this.tableLayoutPanelInputRegisters.PerformLayout();
+			this.tabPageHoldingRegisters.ResumeLayout(false);
+			this.tabPageHoldingRegisters.PerformLayout();
+			this.tableLayoutPanelHoldingRegisters.ResumeLayout(false);
+			this.tableLayoutPanelHoldingRegisters.PerformLayout();
+			this.statusStrip1.ResumeLayout(false);
+			this.statusStrip1.PerformLayout();
+			this.groupBoxCommunication.ResumeLayout(false);
+			this.groupBoxCommunication.PerformLayout();
+			this.tableLayoutPanelCommunication.ResumeLayout(false);
+			this.tableLayoutPanelCommunication.PerformLayout();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -652,53 +844,62 @@
         private System.Windows.Forms.MenuStrip mainMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
-        private System.Windows.Forms.GroupBox configGroupBox;
-        private System.Windows.Forms.ComboBox parityCb;
-        private System.Windows.Forms.Label parityLbl;
-        private System.Windows.Forms.ComboBox baudCb;
-        private System.Windows.Forms.Label baudLbl;
-        private System.Windows.Forms.Button portRefreshBtn;
-        private System.Windows.Forms.ComboBox comPortCb;
-        private System.Windows.Forms.Label comPortLbl;
-        private System.Windows.Forms.ComboBox modeCb;
-        private System.Windows.Forms.Label modeLbl;
-        private System.Windows.Forms.Button portOpenBtn;
-        private System.Windows.Forms.TabControl dataTabControl;
-        private System.Windows.Forms.TabPage inputRegistersTabPage;
-        private System.Windows.Forms.Button inputRegReadBtn;
-        private System.Windows.Forms.TextBox inputRegDataTb;
-        private System.Windows.Forms.Label inputRegDataLbl;
-        private System.Windows.Forms.Label inputRegFormatLbl;
-        private System.Windows.Forms.ComboBox inputRegFormatCb;
-        private System.Windows.Forms.TextBox inputRegAddrTb;
-        private System.Windows.Forms.Label inputRegAddrLbl;
-        private System.Windows.Forms.TabPage holdingRegistersTabPage;
-        private System.Windows.Forms.Button holdingRegWriteBtn;
-        private System.Windows.Forms.Button holdingRegReadBtn;
-        private System.Windows.Forms.TextBox holdingRegDataTb;
-        private System.Windows.Forms.Label holdingRegDataLbl;
-        private System.Windows.Forms.ComboBox holdingRegFormatCb;
-        private System.Windows.Forms.Label holdingRegFormatLbl;
-        private System.Windows.Forms.TextBox holdingRegAddrTb;
-        private System.Windows.Forms.Label holdingRegAddrLbl;
-        private System.Windows.Forms.Label slaveAddrLbl;
-        private System.Windows.Forms.TextBox slaveAddrTb;
-        private System.Windows.Forms.TabPage coilsTabPage;
-        private System.Windows.Forms.Button coilWriteBtn;
-        private System.Windows.Forms.Button coilReadBtn;
-        private System.Windows.Forms.RadioButton coilFalseRadioBtn;
-        private System.Windows.Forms.RadioButton coilTrueRadioBtn;
-        private System.Windows.Forms.TextBox coilAddrTb;
-        private System.Windows.Forms.Label coilAddrLbl;
-        private System.Windows.Forms.StatusStrip mainStatusStrip;
-        private System.Windows.Forms.ToolStripStatusLabel mainStatusLbl;
-        private System.Windows.Forms.TextBox inputRegStringLenTb;
-        private System.Windows.Forms.Label inputRegStringLenLbl;
-        private System.Windows.Forms.ComboBox stopBitsCb;
-		private System.Windows.Forms.Label stopBitsLbl;
-		private System.Windows.Forms.Button inputPollBtn;
-        private System.Windows.Forms.TextBox holdingRegStringLenTb;
-		private System.Windows.Forms.Label holdingRegStringLenLbl;
-    }
+        private System.Windows.Forms.GroupBox groupBoxSerialPort;
+        private System.Windows.Forms.ComboBox comboBoxParity;
+        private System.Windows.Forms.Label labelParity;
+        private System.Windows.Forms.ComboBox comboBoxBaudRate;
+        private System.Windows.Forms.Label labelBaudRate;
+        private System.Windows.Forms.Button buttonPortRefresh;
+        private System.Windows.Forms.ComboBox comboBoxSerialPort;
+        private System.Windows.Forms.Label labelComPort;
+        private System.Windows.Forms.ComboBox comboBoxMode;
+        private System.Windows.Forms.Label labelMode;
+        private System.Windows.Forms.TabControl tabControlData;
+        private System.Windows.Forms.TabPage tabPageInputRegisters;
+        private System.Windows.Forms.Button buttonInputRegisterRead;
+        private System.Windows.Forms.TextBox textBoxInputRegisterData;
+        private System.Windows.Forms.Label labelInputRegisterData;
+        private System.Windows.Forms.Label labelInputRegisterDataFormat;
+        private System.Windows.Forms.ComboBox comboBoxInputRegisterFormat;
+        private System.Windows.Forms.TextBox textBoxInputRegisterAddress;
+        private System.Windows.Forms.Label labelInputRegisterAddress;
+        private System.Windows.Forms.TabPage tabPageHoldingRegisters;
+        private System.Windows.Forms.Button buttonHoldingRegisterWrite;
+        private System.Windows.Forms.Button buttonHoldingRegisterRead;
+        private System.Windows.Forms.TextBox textBoxHoldingRegisterData;
+        private System.Windows.Forms.Label labelHoldingRegisterData;
+        private System.Windows.Forms.ComboBox comboBoxHoldingRegisterFormat;
+        private System.Windows.Forms.Label labelHoldingRegisterFormat;
+        private System.Windows.Forms.TextBox textBoxHoldingRegisterAddress;
+        private System.Windows.Forms.Label labelHoldingRegisterAddress;
+        private System.Windows.Forms.Label labelSlaveAddress;
+        private System.Windows.Forms.TextBox textBoxSlaveAddr;
+        private System.Windows.Forms.TabPage tabPageCoils;
+        private System.Windows.Forms.Button buttonCoilWrite;
+        private System.Windows.Forms.Button buttonCoilRead;
+        private System.Windows.Forms.RadioButton radioButtonCoilFalse;
+        private System.Windows.Forms.RadioButton radioButtonCoilTrue;
+        private System.Windows.Forms.TextBox textBoxCoilAddr;
+        private System.Windows.Forms.Label labelCoilAddress;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel labelMainStatus;
+        private System.Windows.Forms.TextBox textBoxInputRegisterStringLength;
+        private System.Windows.Forms.Label labelInputRegisterStringLength;
+        private System.Windows.Forms.ComboBox comboBoxStopBits;
+		private System.Windows.Forms.Label labelStopBits;
+		private System.Windows.Forms.Button buttonInputRegisterPoll;
+        private System.Windows.Forms.TextBox textBoxHoldingRegisterStringLength;
+		private System.Windows.Forms.Label labelHoldingRegisterStringLength;
+		private System.Windows.Forms.TableLayoutPanel tableLayoutPanelSerialPort;
+		private System.Windows.Forms.GroupBox groupBoxCommunication;
+		private System.Windows.Forms.TableLayoutPanel tableLayoutPanelInputRegisters;
+		private System.Windows.Forms.TableLayoutPanel tableLayoutPanelHoldingRegisters;
+		private System.Windows.Forms.TableLayoutPanel tableLayoutPanelCoils;
+		private System.Windows.Forms.Label labelCoilValue;
+		private System.Windows.Forms.TableLayoutPanel tableLayoutPanelCommunication;
+		private System.Windows.Forms.RadioButton radioButtonOpen;
+		private System.Windows.Forms.RadioButton radioButtonClosed;
+		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+	}
 }
 

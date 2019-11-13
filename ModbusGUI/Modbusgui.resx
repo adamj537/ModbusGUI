@@ -121,17 +121,17 @@
     <value>17, 17</value>
   </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="portRefreshBtn.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="buttonPortRefresh.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADrwAAA68AZW8ckkAAADvSURBVDhPYyAWxLXc/A9lkg5yJ9z5L+p74n/tnIfEGeJR
-        fu2/hP9JsCbJoFNgDOJrxJ7DbwDIBlGf42CNIA0wzSAsH3UOjFN77+I2BKTZJOU82KkwDHINTDMI43QF
-        KJCw+RFko2rSJTAunPeMuDBABg6lN/5P2vCCdI0DC0B+1U29RLqzYRpBOKTjPlYDkue8xG4wSBMstPXz
-        b/73arr3f9bud2A8aef7/xHTXv536sQTCyDbQZp1sq+DDTAovPXfqv7hf/u2p2Ds2ktETMR23wMbANJs
-        WnEPbkDd+vfEh4dVKdBmIIZyyQPEG8DAAAD8b8Ch8+Uh/wAAAABJRU5ErkJggg==
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        vAAADrwBlbxySQAAAO9JREFUOE9jIBbEtdz8D2WSDnIn3Pkv6nvif+2ch8QZ4lF+7b+E/0mwJsmgU2AM
+        4mvEnsNvAMgGUZ/jYI0gDTDNICwfdQ6MU3vv4jYEpNkk5TzYqTAMcg1MMwjjdAUokLD5EWSjatIlMC6c
+        94y4MEAGDqU3/k/a8IJ0jQMLQH7VTb1EurNhGkE4pOM+VgOS57zEbjBIEyy09fNv/vdquvd/1u53YDxp
+        5/v/EdNe/nfqxBMLINtBmnWyr4MNMCi89d+q/uF/+7anYOzaS0RMxHbfAxsA0mxacQ9uQN3698SHh1Up
+        0GYghnLJA8QbwMAAAPxvwKHz5SH/AAAAAElFTkSuQmCC
 </value>
   </data>
-  <metadata name="mainStatusStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+  <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>152, 17</value>
   </metadata>
 </root>
