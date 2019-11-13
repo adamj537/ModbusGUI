@@ -150,8 +150,6 @@ namespace Modbus
 
 	#endregion
 
-	#region Base abstract class
-
 	/// <summary>
 	/// Base abstract class
 	/// </summary>
@@ -491,6 +489,4 @@ namespace Modbus
 
 		#endregion
 	}
-
-	#endregion
 }
