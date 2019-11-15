@@ -15,7 +15,7 @@ namespace ModbusGUI
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Modbusgui());
+            Application.Run(new FormModbus());
         }
     }
 }
