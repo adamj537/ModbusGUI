@@ -49,7 +49,10 @@ namespace ModbusGUI
 
 		#region Fields
 
+		// MODBUS serial device
 		private ModbusMasterSerial _mbMaster = null;
+
+		// thread for polling MODBUS data
 		private Thread _pollThread = null;
 
 		#endregion
@@ -460,226 +463,13 @@ namespace ModbusGUI
 			textBoxHoldingRegisterStringLength.Enabled = SetStringLengthEnable(((ComboBox)sender).SelectedItem);
 		}
 
-		#endregion
-
-		#region Coil / Register Methods
-
 		/// <summary>
-		/// When the Input Register "Read" button is clicked.
+		/// Convert an array of MODBUS register values into a string.
 		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void ButtonInputRegisterRead_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				byte slaveAddr = GetDeviceAddress();
-
-				ushort regAddr = GetRegisterAddress(textBoxInputRegisterAddressHex.Text);
-
-				DataType dataType = GetDataFormat(comboBoxInputRegisterFormat);
-
-				ushort numRegs = 2;
-				if (dataType == DataType.String)
-				{
-					numRegs = GetNumRegisters(textBoxInputRegisterStringLength.Text);
-				}
-
-				if (ReadWriteRegisters(MBRegisterType.Input, MBActionType.Read, slaveAddr, regAddr, numRegs,
-											null, out ushort[] regValues, out string err_str) == false)
-				{
-					throw new Exception("Could not read Input Register");
-				}
-				DisplayData(textBoxInputRegisterData, dataType, regValues);
-
-				toolStripStatusLabel1.Text = "Input Register Read Successfully";
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
-			}
-		}
-
-		/// <summary>
-		/// When the Holding Register "Read" button is clicked.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void ButtonHoldingRegisterRead_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				byte slaveAddr = GetDeviceAddress();
-
-				ushort regAddr = GetRegisterAddress(textBoxHoldingRegisterAddressHex.Text);
-
-				DataType dataType = GetDataFormat(comboBoxHoldingRegisterFormat);
-
-				ushort numRegs = 2;
-				if (dataType == DataType.String)
-				{
-					numRegs = GetNumRegisters(textBoxHoldingRegisterStringLength.Text);
-				}
-
-				if (ReadWriteRegisters(MBRegisterType.Holding, MBActionType.Read, slaveAddr, regAddr, numRegs,
-				null, out ushort[] regValues, out string errorMsg) == false)
-				{
-					throw new Exception(errorMsg);
-				}
-
-				DisplayData(textBoxHoldingRegisterData, dataType, regValues);
-
-				toolStripStatusLabel1.Text = "Holding Register Read Successfully";
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
-			}
-		}
-
-		/// <summary>
-		/// When the Holding Register "Write" button is clicked.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void ButtonHoldingRegisterWrite_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				byte slaveAddr = GetDeviceAddress();
-
-				ushort regAddr = GetRegisterAddress(textBoxHoldingRegisterAddressHex.Text);
-
-				DataType dataType = GetDataFormat(comboBoxHoldingRegisterFormat);
-
-				ushort numRegs = 2;
-				if (dataType == DataType.String)
-				{
-					numRegs = GetNumRegisters(textBoxHoldingRegisterStringLength.Text);
-				}
-
-				ushort[] regs = StringToRegisters(textBoxHoldingRegisterData.Text, dataType, numRegs);
-				if (regs == null)
-				{
-					throw new ArgumentException("Data to write does not match selected format");
-				}
-
-				if (ReadWriteRegisters(MBRegisterType.Holding, MBActionType.Write, slaveAddr, regAddr, (ushort)regs.Length,
-											regs, out ushort[] rsp, out string errorMsg) == false)
-				{
-					throw new Exception(errorMsg);
-				}
-
-				toolStripStatusLabel1.Text = "Holding Register Written Successfully";
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
-			}
-		}
-
-		/// <summary>
-		/// When the Input Register "Poll" button is clicked.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void ButtonInputPoll_Click(object sender, EventArgs e)
-		{
-			if (_pollThread == null)
-			{
-				// Start a new thread to poll the requested register.
-				_pollThread = new Thread(QueryInputRegister);
-				_pollThread.Start();
-			}
-			else
-			{
-				try
-				{
-					// Stop the running thread.
-					_pollThread.Abort();
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
-				}
-				_pollThread = null;
-			}
-		}
-
-		/// <summary>
-		/// When the Coil "Read" button is clicked.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void ButtonCoilRead_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				byte slaveAddr = GetDeviceAddress();
-
-				ushort regAddr = GetRegisterAddress(textBoxCoilAddressHex.Text);
-
-				if (ReadWriteCoils(MBActionType.Read, slaveAddr, regAddr, 1, null, out bool[] coils, out string errorMsg) == false)
-				{
-					throw new Exception(errorMsg);
-				}
-
-				// Show the value of the coil as T/F
-				if (coils.Length > 0)
-				{
-					if (coils[0] == true)
-					{
-						radioButtonCoilFalse.Checked = false;
-						radioButtonCoilTrue.Checked = true;
-					}
-					else
-					{
-						radioButtonCoilTrue.Checked = false;
-						radioButtonCoilFalse.Checked = true;
-					}
-				}
-
-				toolStripStatusLabel1.Text = "Coil Read Successfully";
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
-			}
-		}
-
-		/// <summary>
-		/// When the Coil "Write" button is clicked.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void ButtonCoilWrite_Click(object sender, EventArgs e)
-		{
-			try
-			{
-				bool[] write_coils = new bool[1];
-
-				byte slaveAddr = GetDeviceAddress();
-
-				ushort regAddr = GetRegisterAddress(textBoxCoilAddressHex.Text);
-
-				write_coils[0] = radioButtonCoilTrue.Checked;
-				if (ReadWriteCoils(MBActionType.Write, slaveAddr, regAddr, (ushort)write_coils.Length,
-										write_coils, out bool[] read_coils, out string errorMsg) == false)
-				{
-					throw new Exception(errorMsg);
-				}
-
-				toolStripStatusLabel1.Text = "Coil Written Successfully";
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
-			}
-		}
-
-		#endregion
-
-		private void DisplayData(TextBox textBox, DataType type, ushort[] registers)
+		/// <param name="type">type of the data</param>
+		/// <param name="registers">data from a MODBUS packet</param>
+		/// <returns></returns>
+		private string RegistersToString(DataType type, ushort[] registers)
 		{
 			List<byte> raw = new List<byte>(4);
 			byte[] rawRegister;
@@ -749,9 +539,17 @@ namespace ModbusGUI
 					}
 					break;
 			}
-			textBox.BeginInvoke((MethodInvoker)(() => textBox.Text = dataString));
+
+			return dataString;
 		}
 
+		/// <summary>
+		/// Convert a string into an array of MODBUS register values.
+		/// </summary>
+		/// <param name="str"></param>
+		/// <param name="type"></param>
+		/// <param name="numRegs"></param>
+		/// <returns></returns>
 		private ushort[] StringToRegisters(string str, DataType type, ushort numRegs)
 		{
 			ushort[] regs = new ushort[numRegs];
@@ -840,33 +638,292 @@ namespace ModbusGUI
 			return regs;
 		}
 
-		private void QueryInputRegister()
-		{
-			byte slaveAddr;
+		#endregion
 
-			while (true)
+		#region Coil / Register Methods
+
+		/// <summary>
+		/// Read Input Registers.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ButtonInputRegisterRead_Click(object sender, EventArgs e)
+		{
+			try
 			{
-				slaveAddr = 3;
-				if (slaveAddr == 0)
+				// Get the selected device address.
+				byte slaveAddr = GetDeviceAddress();
+
+				// Get the selected register address.
+				ushort regAddr = GetRegisterAddress(textBoxInputRegisterAddressHex.Text);
+
+				// Get the selected data format.
+				DataType dataType = GetDataFormat(comboBoxInputRegisterFormat);
+
+				// Calculate the number of registers to read.
+				ushort numRegs = 2;
+				if (dataType == DataType.String)
 				{
-					return;
+					numRegs = GetNumRegisters(textBoxInputRegisterStringLength.Text);
 				}
 
-				ushort regAddr = 4003;
-				ushort numRegs = 2;
-				DataType dataType = DataType.Float;
-
+				// Read from the device.
 				if (ReadWriteRegisters(MBRegisterType.Input, MBActionType.Read, slaveAddr, regAddr, numRegs,
 											null, out ushort[] regValues, out string err_str) == false)
 				{
-					throw new Exception(err_str);
+					throw new Exception("Could not read Input Register");
 				}
-				DisplayData(textBoxInputRegisterData, dataType, regValues);
+
+				// Format and display the data.
+				textBoxInputRegisterData.Text = RegistersToString(dataType, regValues);
+
+				// Update the status.
+				toolStripStatusLabel1.Text = "Input Register Read Successfully";
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
 			}
 		}
 
 		/// <summary>
-		/// 
+		/// Read Holding Registers.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ButtonHoldingRegisterRead_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				// Get the selected device address.
+				byte slaveAddr = GetDeviceAddress();
+
+				// Get the selected register address.
+				ushort regAddr = GetRegisterAddress(textBoxHoldingRegisterAddressHex.Text);
+
+				// Get the selected data format.
+				DataType dataType = GetDataFormat(comboBoxHoldingRegisterFormat);
+
+				// Calculate the number of registers to read.
+				ushort numRegs = 2;
+				if (dataType == DataType.String)
+				{
+					numRegs = GetNumRegisters(textBoxHoldingRegisterStringLength.Text);
+				}
+
+				// Read from the device.
+				if (ReadWriteRegisters(MBRegisterType.Holding, MBActionType.Read, slaveAddr, regAddr, numRegs,
+				null, out ushort[] regValues, out string errorMsg) == false)
+				{
+					throw new Exception(errorMsg);
+				}
+
+				// Format and display the data.
+				textBoxHoldingRegisterData.Text = RegistersToString(dataType, regValues);
+
+				// Update the status.
+				toolStripStatusLabel1.Text = "Holding Register Read Successfully";
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
+			}
+		}
+
+		/// <summary>
+		/// Write Holding Registers.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ButtonHoldingRegisterWrite_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				// Get the selected device address.
+				byte slaveAddr = GetDeviceAddress();
+
+				// Get the selected register address.
+				ushort regAddr = GetRegisterAddress(textBoxHoldingRegisterAddressHex.Text);
+
+				// Get the selected data format.
+				DataType dataType = GetDataFormat(comboBoxHoldingRegisterFormat);
+
+				// Calculate the number of registers to write.
+				ushort numRegs = 2;
+				if (dataType == DataType.String)
+				{
+					numRegs = GetNumRegisters(textBoxHoldingRegisterStringLength.Text);
+				}
+
+				// Convert the desired data into an array of register values.
+				ushort[] regs = StringToRegisters(textBoxHoldingRegisterData.Text, dataType, numRegs);
+				if (regs == null)
+				{
+					throw new ArgumentException("Data to write does not match selected format");
+				}
+
+				// Write the register values to the device.
+				if (ReadWriteRegisters(MBRegisterType.Holding, MBActionType.Write, slaveAddr, regAddr, (ushort)regs.Length,
+											regs, out ushort[] rsp, out string errorMsg) == false)
+				{
+					throw new Exception(errorMsg);
+				}
+
+				// Update the status.
+				toolStripStatusLabel1.Text = "Holding Register Written Successfully";
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
+			}
+		}
+
+		/// <summary>
+		/// Read Coils.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ButtonCoilRead_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				// Get the selected device address.
+				byte slaveAddr = GetDeviceAddress();
+
+				// Get the selected register address.
+				ushort regAddr = GetRegisterAddress(textBoxCoilAddressHex.Text);
+
+				// Read the selected coil.
+				if (ReadWriteCoils(MBActionType.Read, slaveAddr, regAddr, 1, null, out bool[] coils, out string errorMsg) == false)
+				{
+					throw new Exception(errorMsg);
+				}
+
+				// Show the value of the coil as true or false.
+				if (coils.Length > 0)
+				{
+					if (coils[0] == true)
+					{
+						radioButtonCoilFalse.Checked = false;
+						radioButtonCoilTrue.Checked = true;
+					}
+					else
+					{
+						radioButtonCoilTrue.Checked = false;
+						radioButtonCoilFalse.Checked = true;
+					}
+				}
+
+				// Update the status.
+				toolStripStatusLabel1.Text = "Coil Read Successfully";
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
+			}
+		}
+
+		/// <summary>
+		/// Write Coils.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ButtonCoilWrite_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				bool[] writeCoils = new bool[1];
+
+				// Get the selected device address.
+				byte slaveAddr = GetDeviceAddress();
+
+				// Get the selected register address.
+				ushort regAddr = GetRegisterAddress(textBoxCoilAddressHex.Text);
+
+				// Write the selected coil to the device.
+				writeCoils[0] = radioButtonCoilTrue.Checked;
+				if (ReadWriteCoils(MBActionType.Write, slaveAddr, regAddr, (ushort)writeCoils.Length,
+										writeCoils, out bool[] read_coils, out string errorMsg) == false)
+				{
+					throw new Exception(errorMsg);
+				}
+
+				// Update the status.
+				toolStripStatusLabel1.Text = "Coil Written Successfully";
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
+			}
+		}
+
+		/// <summary>
+		/// Start/Stop polling an Input Register.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void ButtonInputPoll_Click(object sender, EventArgs e)
+		{
+			if (_pollThread == null)
+			{
+				// Get the selected device address.
+				byte slaveAddr = GetDeviceAddress();
+
+				// Get the selected register address.
+				ushort regAddr = GetRegisterAddress(textBoxInputRegisterAddressHex.Text);
+
+				// Get the selected data format.
+				DataType dataType = GetDataFormat(comboBoxInputRegisterFormat);
+
+				// Calculate the number of registers to read.
+				ushort numRegs = 2;
+				if (dataType == DataType.String)
+				{
+					numRegs = GetNumRegisters(textBoxInputRegisterStringLength.Text);
+				}
+
+				// Start a new thread to poll the requested register.
+				_pollThread = new Thread(() =>
+				{
+					while (true)
+					{
+						// Read the input registers from the device.
+						if (ReadWriteRegisters(MBRegisterType.Input, MBActionType.Read, slaveAddr, regAddr, numRegs,
+													null, out ushort[] regValues, out string err_str) == false)
+						{
+							throw new Exception(err_str);
+						}
+
+						// Format the data.
+						string dataString = RegistersToString(dataType, regValues);
+
+						// Display the data.
+						textBoxInputRegisterData.BeginInvoke((MethodInvoker)(() => textBoxInputRegisterData.Text = dataString));
+					}
+				});
+				_pollThread.Start();
+			}
+			else
+			{
+				try
+				{
+					// Stop the running thread.
+					_pollThread.Abort();
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show(ex.Message, ex.GetType().Name.ToString());
+				}
+				_pollThread = null;
+			}
+		}
+
+		#endregion
+
+		#region Get Rid Of These Methods
+
+		/// <summary>
+		/// Read or write coils.
 		/// </summary>
 		/// <param name="action"></param>
 		/// <param name="slaveAddress"></param>
@@ -922,7 +979,7 @@ namespace ModbusGUI
 		}
 
 		/// <summary>
-		/// Read Modbus Input Registers
+		/// Read or write input registers.
 		/// </summary>
 		/// <remarks>
 		/// Calls the Modbus library read input registers.  This function will handle the exceptions and
@@ -1002,5 +1059,7 @@ namespace ModbusGUI
 
 			return success;
 		}
+
+		#endregion
 	}
 }
