@@ -26,25 +26,6 @@ namespace ModbusGUI
 			String,
 		}
 
-		/// <summary>
-		/// Types of registers that MODBUS can use
-		/// </summary>
-		enum MBRegisterType
-		{
-			Input,
-			Holding,
-		}
-
-		/// <summary>
-		/// Types of MODBUS transactions
-		/// </summary>
-		enum MBActionType
-		{
-			Read,
-			Write,
-			WriteSingle,
-		}
-
 		#endregion
 
 		#region Fields
@@ -270,28 +251,42 @@ namespace ModbusGUI
 
 		private string StringHexToDecimal(string hexString)
 		{
+			string result;
 			try
 			{
-				return Convert.ToInt32(hexString.Trim(), 16).ToString();
+				result = Convert.ToInt32(hexString.Trim(), 16).ToString();
 			}
 			// If the number is invalid, just use an empty string.
 			catch (FormatException)
 			{
-				return string.Empty;
+				result = string.Empty;
 			}
+			catch (ArgumentOutOfRangeException)
+			{
+				result = string.Empty;
+			}
+
+			return result;
 		}
 
 		private string StringDecimalToHex(string decimalString)
 		{
+			string result;
 			try
 			{
-				return Convert.ToInt32(decimalString.Trim()).ToString("X");
+				result = Convert.ToInt32(decimalString.Trim()).ToString("X");
 			}
 			// If the number is invalid, just use an empty string.
 			catch (FormatException)
 			{
-				return string.Empty;
+				result = string.Empty;
 			}
+			catch (ArgumentOutOfRangeException)
+			{
+				result = string.Empty;
+			}
+
+			return result;
 		}
 
 		private void TextBoxDeviceAddressHex_Leave(object sender, EventArgs e)
@@ -354,6 +349,13 @@ namespace ModbusGUI
 		/// <returns>device address</returns>
 		private byte GetDeviceAddress()
 		{
+			// If the device address text box is empty...
+			if (string.IsNullOrWhiteSpace(textBoxDeviceAddressDecimal.Text))
+			{
+				// Convert from hex.
+				TextBoxDeviceAddressHex_Leave(null, null);
+			}
+
 			// Parse the address the user has entered.
 			// If the text is not a number...
 			if (byte.TryParse(textBoxDeviceAddressDecimal.Text, out byte address) == false)
@@ -654,8 +656,15 @@ namespace ModbusGUI
 				// Get the selected device address.
 				byte slaveAddr = GetDeviceAddress();
 
+				// If the register address text box is empty...
+				if (string.IsNullOrWhiteSpace(textBoxInputRegisterAddressDecimal.Text))
+				{
+					// Convert from hex.
+					TextBoxInputRegisterAddressHex_Leave(null, null);
+				}
+
 				// Get the selected register address.
-				ushort regAddr = GetRegisterAddress(textBoxInputRegisterAddressHex.Text);
+				ushort regAddr = GetRegisterAddress(textBoxInputRegisterAddressDecimal.Text);
 
 				// Get the selected data format.
 				DataType dataType = GetDataFormat(comboBoxInputRegisterFormat);
@@ -668,11 +677,7 @@ namespace ModbusGUI
 				}
 
 				// Read from the device.
-				if (ReadWriteRegisters(MBRegisterType.Input, MBActionType.Read, slaveAddr, regAddr, numRegs,
-											null, out ushort[] regValues, out string err_str) == false)
-				{
-					throw new Exception("Could not read Input Register");
-				}
+				ushort[] regValues = _mbMaster.ReadInputRegisters(slaveAddr, regAddr, numRegs);
 
 				// Format and display the data.
 				textBoxInputRegisterData.Text = RegistersToString(dataType, regValues);
@@ -698,8 +703,15 @@ namespace ModbusGUI
 				// Get the selected device address.
 				byte slaveAddr = GetDeviceAddress();
 
+				// If the register address text box is empty...
+				if (string.IsNullOrWhiteSpace(textBoxHoldingRegisterAddressDecimal.Text))
+				{
+					// Convert from hex.
+					TextBoxHoldingRegisterAddressHex_Leave(null, null);
+				}
+
 				// Get the selected register address.
-				ushort regAddr = GetRegisterAddress(textBoxHoldingRegisterAddressHex.Text);
+				ushort regAddr = GetRegisterAddress(textBoxHoldingRegisterAddressDecimal.Text);
 
 				// Get the selected data format.
 				DataType dataType = GetDataFormat(comboBoxHoldingRegisterFormat);
@@ -712,11 +724,7 @@ namespace ModbusGUI
 				}
 
 				// Read from the device.
-				if (ReadWriteRegisters(MBRegisterType.Holding, MBActionType.Read, slaveAddr, regAddr, numRegs,
-				null, out ushort[] regValues, out string errorMsg) == false)
-				{
-					throw new Exception(errorMsg);
-				}
+				ushort[] regValues = _mbMaster.ReadHoldingRegisters(slaveAddr, regAddr, numRegs);
 
 				// Format and display the data.
 				textBoxHoldingRegisterData.Text = RegistersToString(dataType, regValues);
@@ -742,8 +750,15 @@ namespace ModbusGUI
 				// Get the selected device address.
 				byte slaveAddr = GetDeviceAddress();
 
+				// If the register address text box is empty...
+				if (string.IsNullOrWhiteSpace(textBoxHoldingRegisterAddressDecimal.Text))
+				{
+					// Convert from hex.
+					TextBoxHoldingRegisterAddressHex_Leave(null, null);
+				}
+
 				// Get the selected register address.
-				ushort regAddr = GetRegisterAddress(textBoxHoldingRegisterAddressHex.Text);
+				ushort regAddr = GetRegisterAddress(textBoxHoldingRegisterAddressDecimal.Text);
 
 				// Get the selected data format.
 				DataType dataType = GetDataFormat(comboBoxHoldingRegisterFormat);
@@ -763,11 +778,7 @@ namespace ModbusGUI
 				}
 
 				// Write the register values to the device.
-				if (ReadWriteRegisters(MBRegisterType.Holding, MBActionType.Write, slaveAddr, regAddr, (ushort)regs.Length,
-											regs, out ushort[] rsp, out string errorMsg) == false)
-				{
-					throw new Exception(errorMsg);
-				}
+				_mbMaster.WriteMultipleRegisters(slaveAddr, regAddr, regs);
 
 				// Update the status.
 				toolStripStatusLabel1.Text = "Holding Register Written Successfully";
@@ -790,17 +801,21 @@ namespace ModbusGUI
 				// Get the selected device address.
 				byte slaveAddr = GetDeviceAddress();
 
-				// Get the selected register address.
-				ushort regAddr = GetRegisterAddress(textBoxCoilAddressHex.Text);
-
-				// Read the selected coil.
-				if (ReadWriteCoils(MBActionType.Read, slaveAddr, regAddr, 1, null, out bool[] coils, out string errorMsg) == false)
+				// If the register address text box is empty...
+				if (string.IsNullOrWhiteSpace(textBoxCoilAddressDecimal.Text))
 				{
-					throw new Exception(errorMsg);
+					// Convert from hex.
+					TextBoxCoilAddressHex_Leave(null, null);
 				}
 
+				// Get the selected register address.
+				ushort regAddr = GetRegisterAddress(textBoxCoilAddressDecimal.Text);
+
+				// Read the selected coil.
+				bool[] coils = _mbMaster.ReadCoils(slaveAddr, regAddr, 1);
+
 				// Show the value of the coil as true or false.
-				if (coils.Length > 0)
+				if (coils.Length != 0)
 				{
 					if (coils[0] == true)
 					{
@@ -837,16 +852,18 @@ namespace ModbusGUI
 				// Get the selected device address.
 				byte slaveAddr = GetDeviceAddress();
 
+				// If the register address text box is empty...
+				if (string.IsNullOrWhiteSpace(textBoxCoilAddressDecimal.Text))
+				{
+					// Convert from hex.
+					TextBoxCoilAddressHex_Leave(null, null);
+				}
+
 				// Get the selected register address.
-				ushort regAddr = GetRegisterAddress(textBoxCoilAddressHex.Text);
+				ushort regAddr = GetRegisterAddress(textBoxCoilAddressDecimal.Text);
 
 				// Write the selected coil to the device.
-				writeCoils[0] = radioButtonCoilTrue.Checked;
-				if (ReadWriteCoils(MBActionType.Write, slaveAddr, regAddr, (ushort)writeCoils.Length,
-										writeCoils, out bool[] read_coils, out string errorMsg) == false)
-				{
-					throw new Exception(errorMsg);
-				}
+				_mbMaster.WriteSingleCoil(slaveAddr, regAddr, radioButtonCoilTrue.Checked);
 
 				// Update the status.
 				toolStripStatusLabel1.Text = "Coil Written Successfully";
@@ -869,8 +886,15 @@ namespace ModbusGUI
 				// Get the selected device address.
 				byte slaveAddr = GetDeviceAddress();
 
+				// If the register address text box is empty...
+				if (string.IsNullOrWhiteSpace(textBoxInputRegisterAddressDecimal.Text))
+				{
+					// Convert from hex.
+					TextBoxInputRegisterAddressHex_Leave(null, null);
+				}
+
 				// Get the selected register address.
-				ushort regAddr = GetRegisterAddress(textBoxInputRegisterAddressHex.Text);
+				ushort regAddr = GetRegisterAddress(textBoxInputRegisterAddressDecimal.Text);
 
 				// Get the selected data format.
 				DataType dataType = GetDataFormat(comboBoxInputRegisterFormat);
@@ -888,11 +912,7 @@ namespace ModbusGUI
 					while (true)
 					{
 						// Read the input registers from the device.
-						if (ReadWriteRegisters(MBRegisterType.Input, MBActionType.Read, slaveAddr, regAddr, numRegs,
-													null, out ushort[] regValues, out string err_str) == false)
-						{
-							throw new Exception(err_str);
-						}
+						ushort[] regValues = _mbMaster.ReadInputRegisters(slaveAddr, regAddr, numRegs);
 
 						// Format the data.
 						string dataString = RegistersToString(dataType, regValues);
@@ -916,148 +936,6 @@ namespace ModbusGUI
 				}
 				_pollThread = null;
 			}
-		}
-
-		#endregion
-
-		#region Get Rid Of These Methods
-
-		/// <summary>
-		/// Read or write coils.
-		/// </summary>
-		/// <param name="action"></param>
-		/// <param name="slaveAddress"></param>
-		/// <param name="startAddress"></param>
-		/// <param name="numberOfCoils"></param>
-		/// <param name="writeValues"></param>
-		/// <param name="result"></param>
-		/// <param name="errorMsg"></param>
-		/// <returns></returns>
-		private bool ReadWriteCoils(MBActionType action, byte slaveAddress, ushort startAddress, ushort numberOfCoils,
-									bool[] writeValues, out bool[] result, out string errorMsg)
-		{
-			bool success = true;
-
-			errorMsg = "No Error";
-			result = null;
-
-			try
-			{
-				if (action == MBActionType.Read)
-				{
-					result = _mbMaster.ReadCoils(slaveAddress, (ushort)(startAddress - 1), numberOfCoils);
-				}
-				else // write
-				{
-					if (writeValues.Length == 1)
-					{
-						_mbMaster.WriteSingleCoil(slaveAddress, (ushort)(startAddress - 1), writeValues[0]);
-					}
-					else
-					{
-						_mbMaster.WriteMultipleCoils(slaveAddress, (ushort)(startAddress - 1), writeValues);
-					}
-				}
-			}
-			catch (TimeoutException)
-			{
-				errorMsg = "Timeout: The Slave failed to respond within the desired time frame";
-				success = false;
-			}
-			catch (Exception exp)
-			{
-				errorMsg = exp.ToString();
-				success = false;
-			}
-
-			if (_mbMaster.Error != Errors.NO_ERROR)
-			{
-				success = false;
-			}
-
-			return success;
-		}
-
-		/// <summary>
-		/// Read or write input registers.
-		/// </summary>
-		/// <remarks>
-		/// Calls the Modbus library read input registers.  This function will handle the exceptions and
-		/// return false and an error string in errorMsg if the commands fails.
-		/// </remarks>
-		/// <param name="type"></param>
-		/// <param name="action"></param>
-		/// <param name="slaveAddress">target device address on the bus</param>
-		/// <param name="startAddress">address of the first register to read in generic 1-based addressing</param>
-		/// <param name="numberOfRegisters"></param>
-		/// <param name="writeValues"></param>
-		/// <param name="result">data read from the specified target</param>
-		/// <param name="errorMsg">error message describing why the command failed</param>
-		/// <returns>true if success, otherwise false</returns>
-		private bool ReadWriteRegisters(MBRegisterType type, MBActionType action, byte slaveAddress, ushort startAddress,
-										ushort numberOfRegisters, ushort[] writeValues, out ushort[] result, out string errorMsg)
-		{
-			bool success = true;
-
-			errorMsg = "No Error";
-			result = null;
-
-			try
-			{
-				if (type == MBRegisterType.Input)
-				{
-					if (action == MBActionType.Read)
-					{
-						result = _mbMaster.ReadInputRegisters(slaveAddress, (ushort)(startAddress - 1), numberOfRegisters);
-					}
-					else // Write
-					{
-						success = false;
-						errorMsg = "Invalid Request";
-					}
-				}
-				else // Holding
-				{
-					if (action == MBActionType.Read)
-					{
-						result = _mbMaster.ReadHoldingRegisters(slaveAddress, (ushort)(startAddress - 1), numberOfRegisters);
-					}
-					else if (action == MBActionType.WriteSingle)
-					{
-						for (int writeIndex = 0; writeIndex < numberOfRegisters; writeIndex++)
-						{
-							_mbMaster.WriteSingleRegister(slaveAddress, (ushort)(startAddress - 1), writeValues[writeIndex]);
-							// Next register address
-							startAddress += 1;
-						}
-					}
-					else // Write
-					{
-						_mbMaster.WriteMultipleRegisters(slaveAddress, (ushort)(startAddress - 1), writeValues);
-					}
-				}
-			}
-			catch (TimeoutException)
-			{
-				errorMsg = "Timeout: The Slave failed to respond within the desired time frame";
-				success = false;
-			}
-			catch (Exception exp)
-			{
-				errorMsg = exp.ToString();
-				success = false;
-			}
-
-			if (_mbMaster.Error == Errors.RX_TIMEOUT)
-			{
-				errorMsg = "Timeout:  The Slave failed to respond within the desired time frame.";
-			}
-			if (_mbMaster.Error != Errors.NO_ERROR)
-			{
-				success = false;
-			}
-
-			return success;
 		}
 
 		#endregion

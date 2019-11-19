@@ -67,7 +67,7 @@ namespace Modbus
 			{
 				_serialPort.DiscardInBuffer();
 				_serialPort.DiscardOutBuffer();
-				Connected = true;
+				IsConnected = true;
 			}
 		}
 
@@ -77,7 +77,7 @@ namespace Modbus
 		public override void Disconnect()
 		{
 			_serialPort.Close();
-			Connected = false;
+			IsConnected = false;
 		}
 
 		/// <summary>

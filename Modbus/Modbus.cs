@@ -260,11 +260,6 @@ namespace Modbus
 		/// </summary>
 		public int RxTimeout { get; set; } = DEFAULT_RX_TIMEOUT;
 
-		/// <summary>
-		/// Error code
-		/// </summary>
-		public Errors Error { get; set; }
-
 		#endregion
 
 		#region Helper Methods

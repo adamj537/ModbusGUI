@@ -63,7 +63,7 @@ namespace Modbus
 		{
 			_udpClient.Connect(_remoteHost, _port);
 			if (_udpClient.Client.Connected)
-				Connected = true;
+				IsConnected = true;
 		}
 
 		/// <summary>
@@ -72,7 +72,7 @@ namespace Modbus
 		public override void Disconnect()
 		{
 			_udpClient.Close();
-			Connected = false;
+			IsConnected = false;
 		}
 
 		/// <summary>

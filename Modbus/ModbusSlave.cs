@@ -282,8 +282,6 @@ namespace Modbus
 			byte unit_id = 0;
 			Stopwatch sw = new Stopwatch();
 
-			// Set errors at 0
-			Error = Errors.NO_ERROR;
 			// Empting reception buffer
 			receive_buffer.Clear();
 			// Start reception loop
@@ -318,20 +316,18 @@ namespace Modbus
 			// Check for a stop request
 			if (!_run)
 			{
-				Error = Errors.THREAD_BLOCK_REQUEST;
-				return;
+				// TODO:  Not sure what type of exception is best to throw here; likely not a MODBUS one.
+				throw new ModbusException("Thread block request.");
 			}
 			// Check for timeout error
 			if (elapsed_time >= RxTimeout)
 			{
-				Error = Errors.RX_TIMEOUT;
-				return;
+				throw new ModbusTimeoutException("Timeout waiting for response.");
 			}
 			// Check message length
 			if (receive_buffer.Count < 3)
 			{
-				Error = Errors.WRONG_MESSAGE_LEN;
-				return;
+				throw new ModbusResponseException("Wrong message length.");
 			}
 			// Message received, start decoding...
 			switch (_connectionType)
@@ -340,8 +336,7 @@ namespace Modbus
 					// Check and delete start char
 					if (Encoding.ASCII.GetChars(receive_buffer.ToArray()).FirstOrDefault() != ASCII_START_FRAME)
 					{
-						Error = Errors.START_CHAR_NOT_FOUND;
-						return;
+						throw new ModbusTimeoutException("Start character not found.");
 					}
 					receive_buffer.RemoveAt(0);
 					// Check and delete stop chars
@@ -349,8 +344,7 @@ namespace Modbus
 					char[] last_two = Encoding.ASCII.GetChars(receive_buffer.GetRange(receive_buffer.Count - 2, 2).ToArray());
 					if (!end_chars.SequenceEqual(last_two))
 					{
-						Error = Errors.END_CHARS_NOT_FOUND;
-						return;
+						throw new ModbusTimeoutException("End characters not found.");
 					}
 					receive_buffer.RemoveRange(receive_buffer.Count - 2, 2);
 					// Recode message in binary
@@ -360,8 +354,7 @@ namespace Modbus
 					byte calc_lrc = LRC.CalcLRC(receive_buffer.ToArray(), 0, receive_buffer.Count - 1);
 					if (msg_lrc != calc_lrc)
 					{
-						Error = Errors.WRONG_LRC;
-						return;
+						throw new ModbusResponseException("Wrong LRC");
 					}
 					receive_buffer.RemoveAt(receive_buffer.Count - 1);
 					// Analize destination address, if not present in database, discard message and continue
@@ -377,8 +370,7 @@ namespace Modbus
 					ushort calc_crc = CRC16.CalcCRC16(receive_buffer.ToArray(), 0, receive_buffer.Count - 2);
 					if (msg_crc != calc_crc)
 					{
-						Error = Errors.WRONG_CRC;
-						return;
+						throw new ModbusResponseException("Wrong CRC.");
 					}
 					// Analize destination address, if not present in database, discard message and continue
 					unit_id = receive_buffer[0];
@@ -393,20 +385,21 @@ namespace Modbus
 				case ConnectionType.TCP_IP:
 					// Decode MBAP Header
 					transaction_id = ToUInt16(receive_buffer.ToArray(), 0);
+
 					// Check protocol ID
 					ushort protocol_id = ToUInt16(receive_buffer.ToArray(), 2);
 					if (protocol_id != PROTOCOL_ID)
 					{
-						Error = Errors.WRONG_PROTOCOL_ID;
-						return;
+						throw new ModbusResponseException("Wrong protocol ID.");
 					}
+
 					// Acquire data length and check it                    
 					ushort len = ToUInt16(receive_buffer.ToArray(), 4);
 					if ((receive_buffer.Count - 6) != len)
 					{
-						Error = Errors.WRONG_MESSAGE_LEN;
-						return;
+						throw new ModbusResponseException("Wrong message length.");
 					}
+
 					// Analize destination address, if not present in database, discard message and continue
 					unit_id = receive_buffer[6];
 					if (!ModbusDatabase.Any(x => x.UnitID == unit_id))

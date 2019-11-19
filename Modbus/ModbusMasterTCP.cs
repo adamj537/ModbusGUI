@@ -60,7 +60,7 @@ namespace Modbus
 			if (_tcpClient.Connected)
 			{
 				_networkStream = _tcpClient.GetStream();
-				Connected = true;
+				IsConnected = true;
 			}
 		}
 
@@ -72,7 +72,7 @@ namespace Modbus
 			_networkStream.Close();
 			_tcpClient.Close();
 			_tcpClient = null;
-			Connected = false;
+			IsConnected = false;
 		}
 
 		/// <summary>

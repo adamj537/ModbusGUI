@@ -15,19 +15,13 @@ namespace Modbus
 	{
 		#region Fields
 
-		/// <summary>
-		/// Trasmission buffer
-		/// </summary>
+		// Transmission buffer
 		protected List<byte> _sendBuffer = new List<byte>();
 
-		/// <summary>
-		/// Reception buffer
-		/// </summary>
+		// Reception buffer
 		protected List<byte> _receiveBuffer = new List<byte>();
 
-		/// <summary>
-		/// Modbus transaction ID (only Modbus TCP/UDP)
-		/// </summary>
+		// Modbus transaction ID (only Modbus TCP/UDP)
 		protected ushort _transactionID = 0;
 
 		/// <summary>
@@ -42,7 +36,7 @@ namespace Modbus
 		/// <summary>
 		/// Remote host connection status
 		/// </summary>
-		public bool Connected { get; set; } = false;
+		public bool IsConnected { get; set; } = false;
 
 		#endregion
 
@@ -91,87 +85,73 @@ namespace Modbus
 
 		#endregion
 
-		#region Protocol Methods
+		#region Helper Methods
 
 		/// <summary>
-		/// Init a new Modbus TCP/UDP message
+		/// Execute a query to a destination master
 		/// </summary>
-		protected void InitTCPUDPMasterMessage()
-		{
-			// Increase transaction ID.
-			_transactionID++;
-
-			// Empty transmit buffer.
-			_sendBuffer.Clear();
-		}
-
-		/// <summary>
-		/// Build MBAP header for Modbus TCP/UDP
-		/// </summary>
-		/// <param name="dest_address">Destination address</param>
-		/// <param name="message_len">Message length</param>
-		protected void BuildMBAPHeader(byte dest_address, ushort message_len)
-		{
-			// Transaction ID (incremented by 1 on each trasmission)
-			_sendBuffer.InsertRange(0, GetBytes(_transactionID));
-
-			// Protocol ID (fixed value)
-			_sendBuffer.InsertRange(2, GetBytes(PROTOCOL_ID));
-
-			// Message length
-			_sendBuffer.InsertRange(4, GetBytes(message_len));
-
-			// Remote unit ID
-			_sendBuffer.Insert(6, dest_address);
-		}
-
-		/// <summary>
-		/// Exec a query to a destination master
-		/// </summary>
-		/// <param name="unit_id">Salve device address</param>
-		/// <param name="msg_len">Message lenght</param>
-		protected void Query(byte unit_id, ushort msg_len)
+		/// <param name="deviceAddress">Salve device address</param>
+		/// <param name="messageLength">Message lenght</param>
+		protected void Query(byte deviceAddress, ushort messageLength)
 		{
 			int rcv;
 			long tmo;
 
-			// Set errors to null
-			Error = Errors.NO_ERROR;
-			// Start to build message
+			// Build the message according to the selected protocol.
 			switch (_connectionType)
 			{
 				case ConnectionType.SERIAL_ASCII:
-					// Add destination device address
-					_sendBuffer.Insert(0, unit_id);
-					// Calc message LCR
+					// Insert device address in front of the message.
+					_sendBuffer.Insert(0, deviceAddress);
+
+					// Calculate message LCR.
 					byte[] lrc = GetASCIIBytesFromBinaryBuffer(new byte[] { LRC.CalcLRC(_sendBuffer.ToArray(), 0, _sendBuffer.Count) });
-					// Convert 'send_buffer' from binary to ASCII
+
+					// Convert the message from binary to ASCII.
 					_sendBuffer = GetASCIIBytesFromBinaryBuffer(_sendBuffer.ToArray()).ToList();
-					// Add LRC at the end of the message
+
+					// Add LRC at the end of the message.
 					_sendBuffer.AddRange(lrc);
-					// Insert the start frame char
+
+					// Insert the start frame chararacter at the start of the message.
 					_sendBuffer.Insert(0, Encoding.ASCII.GetBytes(new char[] { ASCII_START_FRAME }).First());
-					// Insert stop frame chars
-					char[] end_frame = new char[] { ASCII_STOP_FRAME_1ST, ASCII_STOP_FRAME_2ND };
-					_sendBuffer.AddRange(Encoding.ASCII.GetBytes(end_frame));
+
+					// Insert stop frame characters at the end of the message.
+					char[] endFrame = new char[] { ASCII_STOP_FRAME_1ST, ASCII_STOP_FRAME_2ND };
+					_sendBuffer.AddRange(Encoding.ASCII.GetBytes(endFrame));
 					break;
 
 				case ConnectionType.SERIAL_RTU:
-					// Insert 'unit_id' in front of the message
-					_sendBuffer.Insert(0, unit_id);
-					// Append CRC16
+					// Insert device address in front of the message.
+					_sendBuffer.Insert(0, deviceAddress);
+
+					// Append CRC16 to end of message.
 					_sendBuffer.AddRange(BitConverter.GetBytes(CRC16.CalcCRC16(_sendBuffer.ToArray(), 0, _sendBuffer.Count)));
-					// Wait for interframe delay
+
+					// Wait for interframe delay.
 					Thread.Sleep(_interframeDelay);
 					break;
 
+				// For Modbus TCP/UDP, build MBAP header.
 				case ConnectionType.UDP_IP:
 				case ConnectionType.TCP_IP:
-					BuildMBAPHeader(unit_id, msg_len);
+					// Transaction ID (incremented by 1 on each trasmission)
+					_sendBuffer.InsertRange(0, GetBytes(_transactionID));
+
+					// Protocol ID (fixed value)
+					_sendBuffer.InsertRange(2, GetBytes(PROTOCOL_ID));
+
+					// Message length
+					_sendBuffer.InsertRange(4, GetBytes(messageLength));
+
+					// Remote unit ID
+					_sendBuffer.Insert(6, deviceAddress);
 					break;
 			}
-			// Send trasmission buffer
+
+			// Send the message.
 			Send();
+
 			// Start receiving...
 			_receiveBuffer.Clear();
 			bool done = false;
@@ -200,8 +180,7 @@ namespace Modbus
 			sw.Stop();
 			if (tmo >= RxTimeout)
 			{
-				Error = Errors.RX_TIMEOUT;
-				return;
+				throw new ModbusTimeoutException("Timeout waiting for response.");
 			}
 			else
 			{
@@ -224,8 +203,7 @@ namespace Modbus
 				}
 				if (_receiveBuffer.Count < min_frame_length)
 				{
-					Error = Errors.WRONG_MESSAGE_LEN;
-					return;
+					throw new ModbusTimeoutException("Wrong message length.");
 				}
 				switch (_connectionType)
 				{
@@ -233,8 +211,7 @@ namespace Modbus
 						// Check and remove start char
 						if (_receiveBuffer[0] != _sendBuffer[0])
 						{
-							Error = Errors.START_CHAR_NOT_FOUND;
-							return;
+							throw new ModbusTimeoutException("Start character not found.");
 						}
 						_receiveBuffer.RemoveRange(0, 1);
 						// Check and remove stop chars
@@ -242,8 +219,7 @@ namespace Modbus
 						char[] rec_end_frame = Encoding.ASCII.GetChars(_receiveBuffer.GetRange(_receiveBuffer.Count - 2, 2).ToArray());
 						if (!orig_end_frame.SequenceEqual(rec_end_frame))
 						{
-							Error = Errors.END_CHARS_NOT_FOUND;
-							break;
+							throw new ModbusTimeoutException("End characters not found.");
 						}
 						_receiveBuffer.RemoveRange(_receiveBuffer.Count - 2, 2);
 						// Convert receive buffer from ASCII to binary
@@ -253,8 +229,7 @@ namespace Modbus
 						byte lrc_received = _receiveBuffer[_receiveBuffer.Count - 1];
 						if (lrc_calculated != lrc_received)
 						{
-							Error = Errors.WRONG_LRC;
-							break;
+							throw new ModbusResponseException("Wrong LRC");
 						}
 						_receiveBuffer.RemoveRange(_receiveBuffer.Count - 1, 1);
 						// Remove address byte
@@ -267,15 +242,13 @@ namespace Modbus
 						ushort rec_crc = BitConverter.ToUInt16(_receiveBuffer.ToArray(), _receiveBuffer.Count - 2);
 						if (rec_crc != calc_crc)
 						{
-							Error = Errors.WRONG_CRC;
-							return;
+							throw new ModbusResponseException("Wrong CRC.");
 						}
 						// Check message consistency
 						byte addr = _receiveBuffer[0];
 						if (addr != _sendBuffer[0])
 						{
-							Error = Errors.WRONG_RESPONSE_ADDRESS;
-							return;
+							throw new ModbusResponseException("Wrong response address.");
 						}
 						// Remove address
 						_receiveBuffer.RemoveRange(0, 1);
@@ -289,28 +262,25 @@ namespace Modbus
 						ushort tid = ToUInt16(_receiveBuffer.ToArray(), 0);
 						if (tid != _transactionID)
 						{
-							Error = Errors.WRONG_TRANSACTION_ID;
-							return;
+							throw new ModbusResponseException("Wrong transaction ID.");
 						}
 						ushort pid = ToUInt16(_receiveBuffer.ToArray(), 2);
 						if (pid != PROTOCOL_ID)
 						{
-							Error = Errors.WRONG_TRANSACTION_ID;
-							return;
+							throw new ModbusResponseException("Wrong transaction ID.");
 						}
 						ushort len = ToUInt16(_receiveBuffer.ToArray(), 4);
 						if ((_receiveBuffer.Count - MBAP_HEADER_LEN + 1) < len)
 						{
-							Error = Errors.WRONG_MESSAGE_LEN;
-							return;
+							throw new ModbusResponseException("Wrong message length.");
 						}
 						byte uid = _receiveBuffer[6];
 						if (uid != _sendBuffer[6])
 						{
-							Error = Errors.WRONG_RESPONSE_UNIT_ID;
-							return;
+							throw new ModbusResponseException("Wrong device address.");
 						}
-						// Let only useful bytes in receive buffer                       
+
+						// Let only useful bytes in receive buffer.
 						_receiveBuffer.RemoveRange(0, MBAP_HEADER_LEN);
 						break;
 				}
@@ -321,52 +291,59 @@ namespace Modbus
 					switch (_receiveBuffer[1])
 					{
 						case 1:
-							Error = Errors.EXCEPTION_ILLEGAL_FUNCTION;
-							break;
+							throw new ModbusIllegalFunctionException();
 
 						case 2:
-							Error = Errors.EXCEPTION_ILLEGAL_DATA_ADDRESS;
-							break;
+							throw new ModbusIllegalDataAddressException();
 
 						case 3:
-							Error = Errors.EXCEPTION_ILLEGAL_DATA_VALUE;
-							break;
+							throw new ModbusIllegalDataValueException();
 
 						case 4:
-							Error = Errors.EXCEPTION_SLAVE_DEVICE_FAILURE;
-							break;
+							throw new ModbusSlaveDeviceFailureException();
 					}
 				}
 			}
 		}
 
+		#endregion
+
+		#region Protocol Methods
+
 		/// <summary>
-		/// Read coil registers
+		/// Read coil registers.
 		/// </summary>
-		/// <param name="unit_id">Slave device address</param>
-		/// <param name="start_address">Address of first register to be read</param>
-		/// <param name="len">Number of registers to be read</param>
+		/// <param name="deviceAddress">Slave device address</param>
+		/// <param name="startAddress">Address of first register to be read</param>
+		/// <param name="numCoils">Number of coils to be read</param>
 		/// <returns>Array of registers from slave</returns>
-		public bool[] ReadCoils(byte unit_id, ushort start_address, ushort len)
+		public bool[] ReadCoils(byte deviceAddress, ushort startAddress, ushort numCoils)
 		{
-			if (len < 1)
+			if (numCoils < 1)
 			{
-				Error = Errors.ZERO_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Zero coils requested.");
 			}
-			if (len > MAX_COILS_IN_READ_MSG)
+			if (numCoils > MAX_COILS_IN_READ_MSG)
 			{
-				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Too many coils requested.");
 			}
-			ushort msg_len = 6;
-			InitTCPUDPMasterMessage();
+
+			// Set message length of six bytes.
+			ushort messageLength = 6;
+
+			// Increase transaction ID (only used for TCP/UDP).
+			_transactionID++;
+
+			// Form the request.
+			_sendBuffer.Clear();
 			_sendBuffer.Add((byte)ModbusCodes.READ_COILS);
-			_sendBuffer.AddRange(GetBytes(start_address));
-			_sendBuffer.AddRange(GetBytes(len));
-			Query(unit_id, msg_len);
-			if (Error != Errors.NO_ERROR)
-				return null;
+			_sendBuffer.AddRange(GetBytes(startAddress));
+			_sendBuffer.AddRange(GetBytes(numCoils));
+
+			// Send the request and receive the response.
+			Query(deviceAddress, messageLength);
+
+			// Parse the response.
 			BitArray ba = new BitArray(_receiveBuffer.GetRange(2, _receiveBuffer.Count - 2).ToArray());
 			bool[] ret = new bool[ba.Count];
 			ba.CopyTo(ret, 0);
@@ -374,32 +351,39 @@ namespace Modbus
 		}
 
 		/// <summary>
-		/// Read a set of discrete inputs
+		/// Read a set of discrete inputs.
 		/// </summary>
-		/// <param name="unit_id">Slave device address</param>
-		/// <param name="start_address">Address of first register to be read</param>
-		/// <param name="len">Number of registers to be read</param>
+		/// <param name="deviceAddress">Slave device address</param>
+		/// <param name="startAddress">Address of first register to be read</param>
+		/// <param name="numInputs">Number of registers to be read</param>
 		/// <returns>Array of readed registers</returns>
-		public bool[] ReadDiscreteInputs(byte unit_id, ushort start_address, ushort len)
+		public bool[] ReadDiscreteInputs(byte deviceAddress, ushort startAddress, ushort numInputs)
 		{
-			if (len < 1)
+			if (numInputs < 1)
 			{
-				Error = Errors.ZERO_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Zero discrete inputs requested.");
 			}
-			if (len > MAX_DISCRETE_INPUTS_IN_READ_MSG)
+			if (numInputs > MAX_DISCRETE_INPUTS_IN_READ_MSG)
 			{
-				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Too many coils requested.");
 			}
-			ushort msg_len = 6;
-			InitTCPUDPMasterMessage();
+
+			// Set message length of six bytes.
+			ushort messageLength = 6;
+
+			// Increase transaction ID (only used for TCP/UDP).
+			_transactionID++;
+
+			// Form the request.
+			_sendBuffer.Clear();
 			_sendBuffer.Add((byte)ModbusCodes.READ_DISCRETE_INPUTS);
-			_sendBuffer.AddRange(GetBytes(start_address));
-			_sendBuffer.AddRange(GetBytes(len));
-			Query(unit_id, msg_len);
-			if (Error != Errors.NO_ERROR)
-				return null;
+			_sendBuffer.AddRange(GetBytes(startAddress));
+			_sendBuffer.AddRange(GetBytes(numInputs));
+
+			// Send the request and receive the response.
+			Query(deviceAddress, messageLength);
+
+			// Parse the response.
 			BitArray ba = new BitArray(_receiveBuffer.GetRange(2, _receiveBuffer.Count - 2).ToArray());
 			bool[] ret = new bool[ba.Count];
 			ba.CopyTo(ret, 0);
@@ -407,65 +391,82 @@ namespace Modbus
 		}
 
 		/// <summary>
-		/// Read a set of holding registers
+		/// Read a set of holding registers.
 		/// </summary>
-		/// <param name="unit_id">Slave device address</param>
-		/// <param name="start_address">Address of first register to be read</param>
-		/// <param name="len">Number of registers to be read</param>
+		/// <param name="deviceAddress">Slave device address</param>
+		/// <param name="startAddress">Address of first register to be read</param>
+		/// <param name="numRegisters">Number of registers to be read</param>
 		/// <returns>Array of readed registers</returns>
-		public ushort[] ReadHoldingRegisters(byte unit_id, ushort start_address, ushort len)
+		public ushort[] ReadHoldingRegisters(byte deviceAddress, ushort startAddress, ushort numRegisters)
 		{
-			if (len < 1)
+			if (numRegisters < 1)
 			{
-				Error = Errors.ZERO_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Zero registers requested.");
 			}
-			if (len > MAX_HOLDING_REGISTERS_IN_READ_MSG)
+			if (numRegisters > MAX_HOLDING_REGISTERS_IN_READ_MSG)
 			{
-				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Too many registers requested.");
 			}
-			ushort msg_len = 6;
-			InitTCPUDPMasterMessage();
+
+			// Set message length of six bytes.
+			ushort messageLength = 6;
+
+			// Increase transaction ID (only used for TCP/UDP).
+			_transactionID++;
+
+			// Form the request.
+			_sendBuffer.Clear();
 			_sendBuffer.Add((byte)ModbusCodes.READ_HOLDING_REGISTERS);
-			_sendBuffer.AddRange(GetBytes(start_address));
-			_sendBuffer.AddRange(GetBytes(len));
-			Query(unit_id, msg_len);
-			if (Error != Errors.NO_ERROR)
-				return null;
+			_sendBuffer.AddRange(GetBytes(startAddress));
+			_sendBuffer.AddRange(GetBytes(numRegisters));
+			
+			// Send the request and receive the response.
+			Query(deviceAddress, messageLength);
+
+			// Parse the response.
 			List<ushort> ret = new List<ushort>();
 			for (int ii = 0; ii < _receiveBuffer[1]; ii += 2)
+			{
 				ret.Add(ToUInt16(_receiveBuffer.ToArray(), ii + 2));
+			}
+
 			return ret.ToArray();
 		}
 
 		/// <summary>
-		/// Read a set of input registers
+		/// Read a set of input registers.
 		/// </summary>
-		/// <param name="unit_id">Slave device address</param>
-		/// <param name="start_address">Address of first register to be read</param>
-		/// <param name="len">Number of registers to be read</param>
+		/// <param name="deviceAddress">Slave device address</param>
+		/// <param name="startAddress">Address of first register to be read</param>
+		/// <param name="numRegisters">Number of registers to be read</param>
 		/// <returns>Array of readed registers</returns>
-		public ushort[] ReadInputRegisters(byte unit_id, ushort start_address, ushort len)
+		public ushort[] ReadInputRegisters(byte deviceAddress, ushort startAddress, ushort numRegisters)
 		{
-			if (len < 1)
+			if (numRegisters < 1)
 			{
-				Error = Errors.ZERO_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Zero registers requested.");
 			}
-			if (len > MAX_INPUT_REGISTERS_IN_READ_MSG)
+			if (numRegisters > MAX_INPUT_REGISTERS_IN_READ_MSG)
 			{
-				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Too many registers requested.");
 			}
-			ushort msg_len = 6;
-			InitTCPUDPMasterMessage();
+
+			// Set message length of six bytes.
+			ushort messageLength = 6;
+
+			// Increase transaction ID (only used for TCP/UDP).
+			_transactionID++;
+
+			// Form the request.
+			_sendBuffer.Clear();
 			_sendBuffer.Add((byte)ModbusCodes.READ_INPUT_REGISTERS);
-			_sendBuffer.AddRange(GetBytes(start_address));
-			_sendBuffer.AddRange(GetBytes(len));
-			Query(unit_id, msg_len);
-			if (Error != Errors.NO_ERROR)
-				return null;
+			_sendBuffer.AddRange(GetBytes(startAddress));
+			_sendBuffer.AddRange(GetBytes(numRegisters));
+
+			// Send the request and receive the response.
+			Query(deviceAddress, messageLength);
+
+			// Parse the response.
 			List<ushort> ret = new List<ushort>();
 			for (int ii = 0; ii < _receiveBuffer[1]; ii += 2)
 				ret.Add(ToUInt16(_receiveBuffer.ToArray(), ii + 2));
@@ -473,249 +474,290 @@ namespace Modbus
 		}
 
 		/// <summary>
-		/// Write a coil register
+		/// Write a coil register.
 		/// </summary>
-		/// <param name="unit_id">Slave device address</param>
-		/// <param name="address">Register address</param>
+		/// <param name="deviceAddress">Slave device address</param>
+		/// <param name="coilAddress">coil's address</param>
 		/// <param name="value">Value to write</param>
-		public void WriteSingleCoil(byte unit_id, ushort address, bool value)
+		public void WriteSingleCoil(byte deviceAddress, ushort coilAddress, bool value)
 		{
-			ushort msg_len = 6;
-			InitTCPUDPMasterMessage();
-			_sendBuffer.Add((byte)ModbusCodes.WRITE_SINGLE_COIL);
-			_sendBuffer.AddRange(GetBytes(address));
+			// Set message length of six bytes.
+			ushort messageLength = 6;
+
+			// Increase transaction ID (only used for TCP/UDP).
+			_transactionID++;
+
+			// Form the request.
+			_sendBuffer.Clear(); _sendBuffer.Add((byte)ModbusCodes.WRITE_SINGLE_COIL);
+			_sendBuffer.AddRange(GetBytes(coilAddress));
 			_sendBuffer.AddRange(GetBytes((ushort)(value == true ? 0xFF00 : 0x0000)));
-			Query(unit_id, msg_len);
-			if (Error == Errors.NO_ERROR)
+
+			// Send the request and receive the response.
+			Query(deviceAddress, messageLength);
+
+			// Parse the response.
+			ushort addr = ToUInt16(_receiveBuffer.ToArray(), 1);
+			ushort regval = ToUInt16(_receiveBuffer.ToArray(), 3);
+
+			// Check for errors in the response.
+			if (addr != coilAddress)
 			{
-				ushort addr = ToUInt16(_receiveBuffer.ToArray(), 1);
-				ushort regval = ToUInt16(_receiveBuffer.ToArray(), 3);
-				if (addr != address)
-				{
-					Error = Errors.WRONG_RESPONSE_ADDRESS;
-					return;
-				}
-				if ((regval == 0xFF00) && !value)
-				{
-					Error = Errors.WRONG_RESPONSE_VALUE;
-					return;
-				}
+				throw new ModbusResponseException("Wrong response address.");
+			}
+			if ((regval == 0xFF00) && !value)
+			{
+				throw new ModbusResponseException("Wrong response value.");
 			}
 		}
 
 		/// <summary>
-		/// Write an holding register
+		/// Write a holding register.
 		/// </summary>
-		/// <param name="unit_id">Slave device address</param>
-		/// <param name="address">Register address</param>
+		/// <param name="deviceAddress">Slave device address</param>
+		/// <param name="registerAddress">Register address</param>
 		/// <param name="value">Value to write</param>
-		public void WriteSingleRegister(byte unit_id, ushort address, ushort value)
+		public void WriteSingleRegister(byte deviceAddress, ushort registerAddress, ushort value)
 		{
-			ushort msg_len = 6;
-			InitTCPUDPMasterMessage();
+			// Set message length of six bytes.
+			ushort messageLength = 6;
+
+			// Increase transaction ID (only used for TCP/UDP).
+			_transactionID++;
+
+			// Form the request.
+			_sendBuffer.Clear();
 			_sendBuffer.Add((byte)ModbusCodes.WRITE_SINGLE_REGISTER);
-			_sendBuffer.AddRange(GetBytes(address));
+			_sendBuffer.AddRange(GetBytes(registerAddress));
 			_sendBuffer.AddRange(GetBytes(value));
-			Query(unit_id, msg_len);
-			if (Error == Errors.NO_ERROR)
+
+			// Send the request and receive the response.
+			Query(deviceAddress, messageLength);
+
+			// Parse the response.
+			ushort addr = ToUInt16(_receiveBuffer.ToArray(), 1);
+			if (addr != registerAddress)
 			{
-				ushort addr = ToUInt16(_receiveBuffer.ToArray(), 1);
-				if (addr != address)
-				{
-					Error = Errors.WRONG_RESPONSE_ADDRESS;
-					return;
-				}
+				throw new ModbusResponseException("Wrong response address.");
 			}
 		}
 
 		/// <summary>
-		/// Write a set of coil registers
+		/// Write a set of coil registers.
 		/// </summary>
-		/// <param name="unit_id">Slave device address</param>
-		/// <param name="start_address">Address of first register to be write</param>
+		/// <param name="deviceAddress">Slave device address</param>
+		/// <param name="startAddress">Address of first register to be write</param>
 		/// <param name="values">Array of values to write</param>
-		public void WriteMultipleCoils(byte unit_id, ushort start_address, bool[] values)
+		public void WriteMultipleCoils(byte deviceAddress, ushort startAddress, bool[] values)
 		{
 			if (values == null)
 			{
-				Error = Errors.ZERO_REGISTERS_REQUESTED;
-				return;
+				throw new ModbusRequestException("Zero registers requested.");
 			}
 			if (values.Length < 1)
 			{
-				Error = Errors.ZERO_REGISTERS_REQUESTED;
-				return;
+				throw new ModbusRequestException("Zero registers requested.");
 			}
 			if (values.Length > MAX_COILS_IN_WRITE_MSG)
 			{
-				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
-				return;
+				throw new ModbusRequestException("Too many registers requested.");
 			}
-			byte byte_cnt = (byte)((values.Length / 8) + ((values.Length % 8) == 0 ? 0 : 1));
-			ushort msg_len = (ushort)(1 + 6 + byte_cnt);
-			byte[] data = new byte[byte_cnt];
+
+			// Set the message length based on how many boolean values we are sending.
+			byte byteCount = (byte)((values.Length / 8) + ((values.Length % 8) == 0 ? 0 : 1));
+			ushort messageLength = (ushort)(1 + 6 + byteCount);
+
+			// Transform the array of boolean values into an array of bytes.
+			byte[] data = new byte[byteCount];
 			BitArray ba = new BitArray(values);
 			ba.CopyTo(data, 0);
-			InitTCPUDPMasterMessage();
+
+			// Increase transaction ID (only used for TCP/UDP).
+			_transactionID++;
+
+			// Form the request.
+			_sendBuffer.Clear();
 			_sendBuffer.Add((byte)ModbusCodes.WRITE_MULTIPLE_COILS);
-			_sendBuffer.AddRange(GetBytes(start_address));
+			_sendBuffer.AddRange(GetBytes(startAddress));
 			_sendBuffer.AddRange(GetBytes((ushort)values.Length));
-			_sendBuffer.Add(byte_cnt);
+			_sendBuffer.Add(byteCount);
 			_sendBuffer.AddRange(data);
-			Query(unit_id, msg_len);
-			if (Error == Errors.NO_ERROR)
+
+			// Send the request and receive the response.
+			Query(deviceAddress, messageLength);
+
+			// Parse the response.
+			ushort sa = ToUInt16(_receiveBuffer.ToArray(), 1);
+			ushort nr = ToUInt16(_receiveBuffer.ToArray(), 3);
+
+			// Check for errors in the response.
+			if (sa != startAddress)
 			{
-				ushort sa = ToUInt16(_receiveBuffer.ToArray(), 1);
-				ushort nr = ToUInt16(_receiveBuffer.ToArray(), 3);
-				if (sa != start_address)
-				{
-					Error = Errors.WRONG_RESPONSE_ADDRESS;
-					return;
-				}
-				if (nr != values.Length)
-				{
-					Error = Errors.WRONG_RESPONSE_REGISTERS;
-					return;
-				}
+				throw new ModbusResponseException("Wrong response address.");
+			}
+			if (nr != values.Length)
+			{
+				throw new ModbusResponseException("Wrong response registers.");
 			}
 		}
 
 		/// <summary>
 		/// Write a set of holding registers
 		/// </summary>
-		/// <param name="unit_id">Slave device address</param>
-		/// <param name="start_address">Address of first register to be write</param>
+		/// <param name="deviceAddress">Slave device address</param>
+		/// <param name="startAddress">Address of first register to be write</param>
 		/// <param name="values">Array of values to write</param>
-		public void WriteMultipleRegisters(byte unit_id, ushort start_address, ushort[] values)
+		public void WriteMultipleRegisters(byte deviceAddress, ushort startAddress, ushort[] values)
 		{
 			if (values == null)
 			{
-				Error = Errors.ZERO_REGISTERS_REQUESTED;
-				return;
+				throw new ModbusRequestException("Zero registers requested.");
 			}
 			if (values.Length < 1)
 			{
-				Error = Errors.ZERO_REGISTERS_REQUESTED;
-				return;
+				throw new ModbusRequestException("Zero registers requested.");
 			}
 			if (values.Length > MAX_HOLDING_REGISTERS_IN_WRITE_MSG)
 			{
-				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
-				return;
+				throw new ModbusRequestException("Too many registers requested.");
 			}
-			ushort msg_len = (ushort)(7 + (values.Length * 2));
-			InitTCPUDPMasterMessage();
+
+			// Set the message length according to how many registers we are writing.
+			ushort messageLength = (ushort)(7 + (values.Length * 2));
+
+			// Increase transaction ID (only used for TCP/UDP).
+			_transactionID++;
+
+			// Form the request.
+			_sendBuffer.Clear();
 			_sendBuffer.Add((byte)ModbusCodes.WRITE_MULTIPLE_REGISTERS);
-			_sendBuffer.AddRange(GetBytes(start_address));
+			_sendBuffer.AddRange(GetBytes(startAddress));
 			_sendBuffer.AddRange(GetBytes((ushort)values.Length));
 			_sendBuffer.Add((byte)(values.Length * 2));
 			for (int ii = 0; ii < values.Length; ii++)
-				_sendBuffer.AddRange(GetBytes(values[ii]));
-			Query(unit_id, msg_len);
-			if (Error == Errors.NO_ERROR)
 			{
-				ushort sa = ToUInt16(_receiveBuffer.ToArray(), 1);
-				ushort nr = ToUInt16(_receiveBuffer.ToArray(), 3);
-				if (sa != start_address)
-				{
-					Error = Errors.WRONG_RESPONSE_ADDRESS;
-					return;
-				}
-				if (nr != values.Length)
-				{
-					Error = Errors.WRONG_RESPONSE_REGISTERS;
-					return;
-				}
+				_sendBuffer.AddRange(GetBytes(values[ii]));
 			}
+
+			// Send the request and receive the response.
+			Query(deviceAddress, messageLength);
+
+			// Parse the response.
+			ushort sa = ToUInt16(_receiveBuffer.ToArray(), 1);
+			ushort nr = ToUInt16(_receiveBuffer.ToArray(), 3);
+
+			// Check for errors in the response.
+			if (sa != startAddress)
+			{
+				throw new ModbusResponseException("Wrong response address.");
+			}
+			if (nr != values.Length)
+			{
+				throw new ModbusResponseException("Wrong response registers.");
+			}
+
 		}
 
 		/// <summary>
 		/// Make an AND and OR mask of a single holding register
 		/// </summary>
-		/// <param name="unit_id">Slave device address</param>
-		/// <param name="address">Register address</param>
-		/// <param name="and_mask">AND mask</param>
-		/// <param name="or_mask">OR mask</param>
-		public void MaskWriteRegister(byte unit_id, ushort address, ushort and_mask, ushort or_mask)
+		/// <param name="deviceAddress">Slave device address</param>
+		/// <param name="registerAddress">Register address</param>
+		/// <param name="andMask">AND mask</param>
+		/// <param name="orMask">OR mask</param>
+		public void MaskWriteRegister(byte deviceAddress, ushort registerAddress, ushort andMask, ushort orMask)
 		{
-			ushort msg_len = 8;
-			InitTCPUDPMasterMessage();
-			_sendBuffer.Add((byte)ModbusCodes.MASK_WRITE_REGISTER);
-			_sendBuffer.AddRange(GetBytes(address));
-			_sendBuffer.AddRange(GetBytes(and_mask));
-			_sendBuffer.AddRange(GetBytes(or_mask));
-			Query(unit_id, msg_len);
-			if (Error == Errors.NO_ERROR)
+			// Set message length to eight bytes.
+			ushort messageLength = 8;
+
+			// Increase transaction ID (only used for TCP/UDP).
+			_transactionID++;
+
+			// Form the request.
+			_sendBuffer.Clear(); _sendBuffer.Add((byte)ModbusCodes.MASK_WRITE_REGISTER);
+			_sendBuffer.AddRange(GetBytes(registerAddress));
+			_sendBuffer.AddRange(GetBytes(andMask));
+			_sendBuffer.AddRange(GetBytes(orMask));
+
+			// Send the request and receive the response.
+			Query(deviceAddress, messageLength);
+
+			// Check address.
+			ushort addr = ToUInt16(_receiveBuffer.ToArray(), 1);
+			if (registerAddress != addr)
 			{
-				// Check address
-				ushort addr = ToUInt16(_receiveBuffer.ToArray(), 1);
-				if (address != addr)
-				{
-					Error = Errors.WRONG_RESPONSE_ADDRESS;
-					return;
-				}
-				// Check AND mask
-				ushort am = ToUInt16(_receiveBuffer.ToArray(), 3);
-				if (and_mask != am)
-				{
-					Error = Errors.WRONG_RESPONSE_AND_MASK;
-					return;
-				}
-				// Check OR mask
-				ushort om = ToUInt16(_receiveBuffer.ToArray(), 5);
-				if (or_mask != om)
-				{
-					Error = Errors.WRONG_RESPONSE_OR_MASK;
-					return;
-				}
+				throw new ModbusResponseException("Wrong response address.");
 			}
+			// Check AND mask
+			ushort am = ToUInt16(_receiveBuffer.ToArray(), 3);
+			if (andMask != am)
+			{
+				throw new ModbusResponseException("Wrong response AND mask.");
+			}
+			// Check OR mask
+			ushort om = ToUInt16(_receiveBuffer.ToArray(), 5);
+			if (orMask != om)
+			{
+				throw new ModbusResponseException("Wrong response OR mask.");
+			}
+
 		}
 
 		/// <summary>
 		/// Read and write a set of holding registers in a single shot
 		/// </summary>
-		/// <param name="unit_id">Slave device address</param>
-		/// <param name="read_start_address">Address of first registers to be read</param>
-		/// <param name="read_len">Number of registers to be read</param>
-		/// <param name="write_start_address">Address of first registers to be write</param>
+		/// <param name="deviceAddress">Slave device address</param>
+		/// <param name="readStartAddress">Address of first registers to be read</param>
+		/// <param name="readNumRegisters">Number of registers to be read</param>
+		/// <param name="writeStartAddress">Address of first registers to be write</param>
 		/// <param name="values">Array of values to be write</param>
 		/// <returns>Array of readed registers</returns>
 		/// <remarks>
 		/// Write is the first operation, than the read operation
 		/// </remarks>
-		public ushort[] ReadWriteMultipleRegisters(byte unit_id, ushort read_start_address, ushort read_len, ushort write_start_address, ushort[] values)
+		public ushort[] ReadWriteMultipleRegisters(byte deviceAddress, ushort readStartAddress, ushort readNumRegisters, ushort writeStartAddress, ushort[] values)
 		{
 			if (values == null)
 			{
-				Error = Errors.ZERO_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Zero registers requested.");
 			}
-			if ((read_len < 1) || (values.Length < 1))
+			if ((readNumRegisters < 1) || (values.Length < 1))
 			{
-				Error = Errors.ZERO_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Zero registers requested.");
 			}
-			if ((read_len > MAX_HOLDING_REGISTERS_TO_READ_IN_READWRITE_MSG) || (values.Length > MAX_HOLDING_REGISTERS_TO_WRITE_IN_READWRITE_MSG))
+			if ((readNumRegisters > MAX_HOLDING_REGISTERS_TO_READ_IN_READWRITE_MSG) ||
+				(values.Length > MAX_HOLDING_REGISTERS_TO_WRITE_IN_READWRITE_MSG))
 			{
-				Error = Errors.TOO_MANY_REGISTERS_REQUESTED;
-				return null;
+				throw new ModbusRequestException("Too many registers requested.");
 			}
-			ushort msg_len = (ushort)(11 + (values.Length * 2));
-			InitTCPUDPMasterMessage();
-			_sendBuffer.Add((byte)ModbusCodes.READ_WRITE_MULTIPLE_REGISTERS);
-			_sendBuffer.AddRange(GetBytes(read_start_address));
-			_sendBuffer.AddRange(GetBytes(read_len));
-			_sendBuffer.AddRange(GetBytes(write_start_address));
+
+			// Set message length according to how many registers we are writing.
+			ushort messageLength = (ushort)(11 + (values.Length * 2));
+
+			// Increase transaction ID (only used for TCP/UDP).
+			_transactionID++;
+
+			// Form the request.
+			_sendBuffer.Clear(); _sendBuffer.Add((byte)ModbusCodes.READ_WRITE_MULTIPLE_REGISTERS);
+			_sendBuffer.AddRange(GetBytes(readStartAddress));
+			_sendBuffer.AddRange(GetBytes(readNumRegisters));
+			_sendBuffer.AddRange(GetBytes(writeStartAddress));
 			_sendBuffer.AddRange(GetBytes((ushort)values.Length));
 			_sendBuffer.Add((byte)(values.Length * 2));
 			for (int ii = 0; ii < values.Length; ii++)
+			{
 				_sendBuffer.AddRange(GetBytes(values[ii]));
-			Query(unit_id, msg_len);
-			if (Error != Errors.NO_ERROR)
-				return null;
+			}
+
+			// Send the request and receive the response.
+			Query(deviceAddress, messageLength);
+
+			// Parse the response.
 			List<ushort> ret = new List<ushort>();
 			for (int ii = 0; ii < _receiveBuffer[1]; ii += 2)
+			{
 				ret.Add(ToUInt16(_receiveBuffer.ToArray(), ii + 2));
+			}
+
 			return ret.ToArray();
 		}
 
