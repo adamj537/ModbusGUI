@@ -89,7 +89,7 @@ namespace Test
 		/// <summary>
 		/// Test modbus RTU master function on a slave RTU id = 5
 		/// </summary>
-		static void Test_ModbusRTUMaster()
+		private static void Test_ModbusRTUMaster()
 		{
 			byte unit_id = 5;
 			// Create instance of modbus serial RTU (replace COMx with a free serial port - ex. COM5).
