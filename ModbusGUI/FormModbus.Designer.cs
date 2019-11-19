@@ -534,6 +534,7 @@
 			this.buttonCoilRead.TabIndex = 4;
 			this.buttonCoilRead.Text = "Read";
 			this.buttonCoilRead.UseVisualStyleBackColor = true;
+			this.buttonCoilRead.Click += new System.EventHandler(this.ButtonCoilRead_Click);
 			// 
 			// textBoxCoilAddressHex
 			// 
@@ -581,6 +582,7 @@
 			this.buttonCoilWrite.TabIndex = 5;
 			this.buttonCoilWrite.Text = "Write";
 			this.buttonCoilWrite.UseVisualStyleBackColor = true;
+			this.buttonCoilWrite.Click += new System.EventHandler(this.ButtonCoilWrite_Click);
 			// 
 			// radioButtonCoilFalse
 			// 
@@ -674,6 +676,7 @@
 			// 
 			this.buttonDiscreteInputRead.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.tableLayoutPanelDiscreteInputs.SetColumnSpan(this.buttonDiscreteInputRead, 2);
+			this.buttonDiscreteInputRead.Enabled = false;
 			this.buttonDiscreteInputRead.Location = new System.Drawing.Point(3, 107);
 			this.buttonDiscreteInputRead.Name = "buttonDiscreteInputRead";
 			this.buttonDiscreteInputRead.Size = new System.Drawing.Size(75, 23);
@@ -721,6 +724,7 @@
 			// 
 			this.buttonDiscreteInputPoll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.tableLayoutPanelDiscreteInputs.SetColumnSpan(this.buttonDiscreteInputPoll, 3);
+			this.buttonDiscreteInputPoll.Enabled = false;
 			this.buttonDiscreteInputPoll.Location = new System.Drawing.Point(84, 107);
 			this.buttonDiscreteInputPoll.Name = "buttonDiscreteInputPoll";
 			this.buttonDiscreteInputPoll.Size = new System.Drawing.Size(75, 23);
@@ -819,6 +823,7 @@
 			this.buttonInputRegisterRead.TabIndex = 6;
 			this.buttonInputRegisterRead.Text = "Read";
 			this.buttonInputRegisterRead.UseVisualStyleBackColor = true;
+			this.buttonInputRegisterRead.Click += new System.EventHandler(this.ButtonInputRegisterRead_Click);
 			// 
 			// labelInputRegisterStringLength
 			// 
@@ -898,6 +903,7 @@
 			this.buttonInputRegisterPoll.TabIndex = 9;
 			this.buttonInputRegisterPoll.Text = "Poll";
 			this.buttonInputRegisterPoll.UseVisualStyleBackColor = true;
+			this.buttonInputRegisterPoll.Click += new System.EventHandler(this.ButtonInputPoll_Click);
 			// 
 			// textBoxInputRegisterData
 			// 
@@ -988,6 +994,7 @@
 			this.buttonHoldingRegisterRead.TabIndex = 6;
 			this.buttonHoldingRegisterRead.Text = "Read";
 			this.buttonHoldingRegisterRead.UseVisualStyleBackColor = true;
+			this.buttonHoldingRegisterRead.Click += new System.EventHandler(this.ButtonHoldingRegisterRead_Click);
 			// 
 			// labelHoldingRegisterAddress
 			// 
@@ -1077,6 +1084,7 @@
 			this.buttonHoldingRegisterWrite.TabIndex = 7;
 			this.buttonHoldingRegisterWrite.Text = "Write";
 			this.buttonHoldingRegisterWrite.UseVisualStyleBackColor = true;
+			this.buttonHoldingRegisterWrite.Click += new System.EventHandler(this.ButtonHoldingRegisterWrite_Click);
 			// 
 			// textBoxHoldingRegisterData
 			// 
