@@ -50,39 +50,39 @@ namespace Modbus
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="uid">Device ID</param>
-		/// <param name="n_discrete_inputs">Input registers (read-only - 1 bit)</param>
-		/// <param name="n_coils">Coils registers (read/write - 1 bit)</param>
-		/// <param name="n_input_registers">Input registers (read-only - 16 bit)</param>
-		/// <param name="n_holding_registers">Holding registers (read/write - 16 bit)</param>
-		public Datastore(byte uid, int n_discrete_inputs, int n_coils, int n_input_registers, int n_holding_registers)
+		/// <param name="deviceId">Device ID</param>
+		/// <param name="numDiscreteInputs">Input registers (read-only - 1 bit)</param>
+		/// <param name="numCoils">Coils registers (read/write - 1 bit)</param>
+		/// <param name="numInputRegisters">Input registers (read-only - 16 bit)</param>
+		/// <param name="numHoldingRegisters">Holding registers (read/write - 16 bit)</param>
+		public Datastore(byte deviceId, int numDiscreteInputs, int numCoils, int numInputRegisters, int numHoldingRegisters)
 		{
 			// Set device ID
-			UnitID = uid;
+			UnitID = deviceId;
 			// Validate values and set db length
-			if (((n_discrete_inputs >= 0) && (n_discrete_inputs <= MAX_ELEMENTS)) &&
-				((n_coils >= 0) && (n_coils <= MAX_ELEMENTS)) &&
-				((n_input_registers >= 0) && (n_input_registers <= MAX_ELEMENTS)) &&
-				((n_holding_registers >= 0) && (n_holding_registers <= MAX_ELEMENTS)))
+			if ((numDiscreteInputs >= 0) && (numDiscreteInputs <= MAX_ELEMENTS) &&
+				(numCoils >= 0) && (numCoils <= MAX_ELEMENTS) &&
+				(numInputRegisters >= 0) && (numInputRegisters <= MAX_ELEMENTS) &&
+				(numHoldingRegisters >= 0) && (numHoldingRegisters <= MAX_ELEMENTS))
 			{
-				DiscreteInputs = new bool[n_discrete_inputs];
-				Coils = new bool[n_coils];
-				InputRegisters = new ushort[n_input_registers];
-				HoldingRegisters = new ushort[n_holding_registers];
+				DiscreteInputs = new bool[numDiscreteInputs];
+				Coils = new bool[numCoils];
+				InputRegisters = new ushort[numInputRegisters];
+				HoldingRegisters = new ushort[numHoldingRegisters];
 			}
 			else
-				throw new Exception("Database definition wrong , each set of records must be between 0 and e " + MAX_ELEMENTS.ToString() + "!");
+				throw new Exception("Each set of records must be between 0 and " + MAX_ELEMENTS.ToString() + "!");
 		}
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		/// <param name="uid">Device ID</param>
-		/// <remarks>The database if initialized at the maximum capacity allowed</remarks>
-		public Datastore(byte uid)
+		/// <param name="deviceId">Device ID</param>
+		/// <remarks>The database is initialized at the maximum capacity allowed</remarks>
+		public Datastore(byte deviceId)
 		{
 			// Set device ID
-			UnitID = uid;
+			UnitID = deviceId;
 			// Set DB length
 			DiscreteInputs = new bool[MAX_ELEMENTS];
 			Coils = new bool[MAX_ELEMENTS];
