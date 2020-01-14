@@ -80,7 +80,7 @@ namespace Modbus
 		/// <summary>
 		/// Function to read a byte from a device
 		/// </summary>
-		/// <returns>Byte readed or -1 if no data are present</returns>
+		/// <returns>Byte read or -1 if no data are present</returns>
 		protected abstract int ReceiveByte();
 
 		#endregion
@@ -152,142 +152,200 @@ namespace Modbus
 			// Send the message.
 			Send();
 
-			// Start receiving...
+			// Clear the receive message buffer.
 			_receiveBuffer.Clear();
+
 			bool done = false;
 			bool in_ric = false;
+
+			// Start a timeout stopwatch.
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 			do
 			{
+				// Try to read a byte.
 				rcv = ReceiveByte();
+
+				// If a byte was received...
 				if (rcv > -1)
 				{
-					if (!in_ric)
+					// If it is the first byte...
+					if (in_ric == false)
+					{
+						// Remember that at least one byte has been received.
 						in_ric = true;
+					}
+
+					// If we're using MODBUS ASCII...
 					if (_connectionType == ConnectionType.SERIAL_ASCII)
 					{
+						// If the byte we received was a colon (the first byte of an ASCII message)...
 						if ((byte)rcv == Encoding.ASCII.GetBytes(new char[] { ASCII_START_FRAME }).First())
+						{
+							// Clear the receive message buffer of any previous partial message.
 							_receiveBuffer.Clear();
+						}
 					}
+
+					// Add the received byte to the receive message buffer.
 					_receiveBuffer.Add((byte)rcv);
 				}
+				// If we've stopped receiving bytes...
 				else if ((rcv == -1) && in_ric)
+				{
+					// Consider the message finished.
 					done = true;
+				}
+
+				// Fetch how many milliseconds have elapsed.
+				// Keep receiving until we stop receiving bytes.
 				tmo = sw.ElapsedMilliseconds;
 			} while ((!done) && (RxTimeout > tmo));
+
+			// Stop the stopwatch.
 			_timeoutStopwatch.Stop();
 			sw.Stop();
+
+			// If the response timed out...
 			if (tmo >= RxTimeout)
 			{
 				throw new ModbusTimeoutException("Timeout waiting for response.");
 			}
+			// If we got a response...
 			else
 			{
-				int min_frame_length;
+				// Fetch the minimum message length...
+				int minFrameLength;
 				switch (_connectionType)
 				{
 					default:
 					case ConnectionType.SERIAL_RTU:
-						min_frame_length = 5;
+						minFrameLength = 5;
 						break;
 
 					case ConnectionType.SERIAL_ASCII:
-						min_frame_length = 11;
+						minFrameLength = 11;
 						break;
 
 					case ConnectionType.UDP_IP:
 					case ConnectionType.TCP_IP:
-						min_frame_length = 9;
+						minFrameLength = 9;
 						break;
 				}
-				if (_receiveBuffer.Count < min_frame_length)
+
+				// If the message was incomplete...
+				if (_receiveBuffer.Count < minFrameLength)
 				{
 					throw new ModbusTimeoutException("Wrong message length.");
 				}
+
 				switch (_connectionType)
 				{
+					// If we're using MODBUS ASCII...
 					case ConnectionType.SERIAL_ASCII:
-						// Check and remove start char
+						// If we didn't get the correct start character...
 						if (_receiveBuffer[0] != _sendBuffer[0])
 						{
 							throw new ModbusTimeoutException("Start character not found.");
 						}
+
+						// Remove the start character (a colon).
 						_receiveBuffer.RemoveRange(0, 1);
-						// Check and remove stop chars
-						char[] orig_end_frame = new char[] { ASCII_STOP_FRAME_1ST, ASCII_STOP_FRAME_2ND };
-						char[] rec_end_frame = Encoding.ASCII.GetChars(_receiveBuffer.GetRange(_receiveBuffer.Count - 2, 2).ToArray());
-						if (!orig_end_frame.SequenceEqual(rec_end_frame))
+
+						// If we didn't get the correct stop characters...
+						char[] endFrameSent = new char[] { ASCII_STOP_FRAME_1ST, ASCII_STOP_FRAME_2ND };
+						char[] endFrameReceived = Encoding.ASCII.GetChars(_receiveBuffer.GetRange(_receiveBuffer.Count - 2, 2).ToArray());
+						if (!endFrameSent.SequenceEqual(endFrameReceived))
 						{
 							throw new ModbusTimeoutException("End characters not found.");
 						}
+
+						// Remove the stop characters.
 						_receiveBuffer.RemoveRange(_receiveBuffer.Count - 2, 2);
-						// Convert receive buffer from ASCII to binary
+
+						// Convert receive buffer from ASCII to binary.
 						_receiveBuffer = GetBinaryBufferFromASCIIBytes(_receiveBuffer.ToArray()).ToList();
-						// Check and remove message LRC
+
+						// If the LRC is incorrect...
 						byte lrc_calculated = LRC.CalcLRC(_receiveBuffer.ToArray(), 0, _receiveBuffer.Count - 1);
 						byte lrc_received = _receiveBuffer[_receiveBuffer.Count - 1];
 						if (lrc_calculated != lrc_received)
 						{
 							throw new ModbusResponseException("Wrong LRC");
 						}
+
+						// Remove the LRC.
 						_receiveBuffer.RemoveRange(_receiveBuffer.Count - 1, 1);
-						// Remove address byte
+
+						// Remove address byte.
 						_receiveBuffer.RemoveRange(0, 1);
 						break;
 
+					// If we're using MODBUS RTU...
 					case ConnectionType.SERIAL_RTU:
-						// Check message 16-bit CRC
-						ushort calc_crc = CRC16.CalcCRC16(_receiveBuffer.ToArray(), 0, _receiveBuffer.Count - 2);
-						ushort rec_crc = BitConverter.ToUInt16(_receiveBuffer.ToArray(), _receiveBuffer.Count - 2);
-						if (rec_crc != calc_crc)
+						// If the 16-bit CRC is incorrect...
+						ushort crcCalculated = CRC16.CalcCRC16(_receiveBuffer.ToArray(), 0, _receiveBuffer.Count - 2);
+						ushort crcReceived = BitConverter.ToUInt16(_receiveBuffer.ToArray(), _receiveBuffer.Count - 2);
+						if (crcReceived != crcCalculated)
 						{
 							throw new ModbusResponseException("Wrong CRC.");
 						}
-						// Check message consistency
+
+						// If the device address is incorrect...
 						byte addr = _receiveBuffer[0];
 						if (addr != _sendBuffer[0])
 						{
 							throw new ModbusResponseException("Wrong response address.");
 						}
-						// Remove address
+
+						// Remove address.
 						_receiveBuffer.RemoveRange(0, 1);
-						// Remove CRC
+
+						// Remove CRC.
 						_receiveBuffer.RemoveRange(_receiveBuffer.Count - 2, 2);
 						break;
 
+					// If we're using MODBUS IP...
 					case ConnectionType.UDP_IP:
 					case ConnectionType.TCP_IP:
-						// Check MBAP header
+						// If the MBAP header is incorrect...
 						ushort tid = ToUInt16(_receiveBuffer.ToArray(), 0);
 						if (tid != _transactionID)
 						{
 							throw new ModbusResponseException("Wrong transaction ID.");
 						}
+
+						// If the protocol ID is incorect...
 						ushort pid = ToUInt16(_receiveBuffer.ToArray(), 2);
 						if (pid != PROTOCOL_ID)
 						{
 							throw new ModbusResponseException("Wrong transaction ID.");
 						}
+
+						// If the length is incorrect...
 						ushort len = ToUInt16(_receiveBuffer.ToArray(), 4);
 						if ((_receiveBuffer.Count - MBAP_HEADER_LEN + 1) < len)
 						{
 							throw new ModbusResponseException("Wrong message length.");
 						}
+
+						// If the device address is incorrect...
 						byte uid = _receiveBuffer[6];
 						if (uid != _sendBuffer[6])
 						{
 							throw new ModbusResponseException("Wrong device address.");
 						}
 
-						// Let only useful bytes in receive buffer.
+						// Remove the header from the message.
 						_receiveBuffer.RemoveRange(0, MBAP_HEADER_LEN);
 						break;
 				}
-				// Controllo eventuali messaggi di errore
+
+				// If an error message was received...
 				if (_receiveBuffer[0] > 0x80)
 				{
-					// E' stato segnalato un errore, controllo l'exception code
+					// An error has been reported.
+					// Throw an error according to the exception code.
 					switch (_receiveBuffer[1])
 					{
 						case 1:
