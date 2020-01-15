@@ -21,5 +21,10 @@ The app will run without any hardware, but to do anything useful, you'll need a 
 
 If something goes wrong (e.g. a timeout, corrupted message, etc.) a message will appear.
 
+## Licensing
+There are two licenses involved here.  The original [free-dotnet-modbus project](https://code.google.com/archive/p/free-dotnet-modbus/downloads) appears to have used the GNU Lesser GPL license, so I've retained that for the library itself.  The GUI project, which I wrote, I'm releasing with the MIT license.
+
+So basically if you change anything in the Modbus folder, you need to open source your changes.  If you change anything else, you can keep your changes as closed source if you choose.
+
 ## Contributing
 If you've got something valuable, feel free to submit a pull request.
