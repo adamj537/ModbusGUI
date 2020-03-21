@@ -269,7 +269,7 @@ namespace Modbus
 		/// </summary>
 		/// <param name="value">Value to convert</param>
 		/// <returns>Bytes array</returns>
-		protected byte[] GetBytes(ushort value)
+		protected static byte[] GetBytes(ushort value)
 		{
 			byte[] array = new byte[2];
 

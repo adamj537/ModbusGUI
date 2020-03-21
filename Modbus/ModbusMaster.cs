@@ -94,9 +94,6 @@ namespace Modbus
 		/// <param name="messageLength">Message lenght</param>
 		protected void Query(byte deviceAddress, ushort messageLength)
 		{
-			int rcv;
-			long tmo;
-
 			// Build the message according to the selected protocol.
 			switch (_connectionType)
 			{
@@ -156,7 +153,8 @@ namespace Modbus
 			_receiveBuffer.Clear();
 
 			bool done = false;
-			bool in_ric = false;
+			bool firstByteReceived = false;
+			long elapsedTime;
 
 			// Start a timeout stopwatch.
 			Stopwatch sw = new Stopwatch();
@@ -164,16 +162,16 @@ namespace Modbus
 			do
 			{
 				// Try to read a byte.
-				rcv = ReceiveByte();
+				int rcv = ReceiveByte();
 
 				// If a byte was received...
 				if (rcv > -1)
 				{
 					// If it is the first byte...
-					if (in_ric == false)
+					if (firstByteReceived == false)
 					{
 						// Remember that at least one byte has been received.
-						in_ric = true;
+						firstByteReceived = true;
 					}
 
 					// If we're using MODBUS ASCII...
@@ -191,7 +189,7 @@ namespace Modbus
 					_receiveBuffer.Add((byte)rcv);
 				}
 				// If we've stopped receiving bytes...
-				else if ((rcv == -1) && in_ric)
+				else if ((rcv == -1) && firstByteReceived)
 				{
 					// Consider the message finished.
 					done = true;
@@ -199,15 +197,15 @@ namespace Modbus
 
 				// Fetch how many milliseconds have elapsed.
 				// Keep receiving until we stop receiving bytes.
-				tmo = sw.ElapsedMilliseconds;
-			} while ((!done) && (RxTimeout > tmo));
+				elapsedTime = sw.ElapsedMilliseconds;
+			} while ((!done) && (RxTimeout > elapsedTime));
 
 			// Stop the stopwatch.
 			_timeoutStopwatch.Stop();
 			sw.Stop();
 
 			// If the response timed out...
-			if (tmo >= RxTimeout)
+			if (elapsedTime >= RxTimeout)
 			{
 				throw new ModbusTimeoutException("Timeout waiting for response.");
 			}
@@ -288,6 +286,8 @@ namespace Modbus
 						ushort crcReceived = BitConverter.ToUInt16(_receiveBuffer.ToArray(), _receiveBuffer.Count - 2);
 						if (crcReceived != crcCalculated)
 						{
+							// TODO:  Read until there's nothing left in the queue.
+
 							throw new ModbusResponseException("Wrong CRC.");
 						}
 

@@ -1,21 +1,22 @@
-﻿using System.IO.Ports;
+﻿using System;
+using System.IO.Ports;
 
 namespace Modbus
 {
 	/// <summary>
 	/// Modbus serial master class
 	/// </summary>
-	public sealed class ModbusMasterSerial : ModbusMaster
+	public sealed class ModbusMasterSerial : ModbusMaster, IDisposable
 	{
 		#region Fields
 
 		/// <summary>
 		/// Serial port instance
 		/// </summary>
-		private SerialPort _serialPort;
+		private readonly SerialPort _serialPort;
 
 		/// <summary>
-		/// Char timeout
+		/// Character timeout
 		/// </summary>
 		private long _charTimeout;
 
@@ -46,11 +47,16 @@ namespace Modbus
 					_connectionType = ConnectionType.SERIAL_ASCII;
 					break;
 			}
-			// Set serial port instance
-			_serialPort = new SerialPort(port, baudrate, parity, databits, stopbits);
-			_serialPort.Handshake = handshake;
-			// Get interframe delay
+
+			// Set serial port instance.
+			_serialPort = new SerialPort(port, baudrate, parity, databits, stopbits)
+			{
+				Handshake = handshake
+			};
+
+			// Get interframe delay.
 			_interframeDelay = GetInterframeDelay(_serialPort);
+
 			// Get interchar delay
 			_intercharDelay = GetIntercharDelay(_serialPort);
 		}
@@ -62,9 +68,13 @@ namespace Modbus
 		/// </summary>
 		public override void Connect()
 		{
+			// Open the serial port.
 			_serialPort.Open();
+
+			// If the port opened successfully...
 			if (_serialPort.IsOpen)
 			{
+				// Clear the buffers.
 				_serialPort.DiscardInBuffer();
 				_serialPort.DiscardOutBuffer();
 				IsConnected = true;
@@ -76,7 +86,7 @@ namespace Modbus
 		/// </summary>
 		public override void Disconnect()
 		{
-			_serialPort.Close();
+			_serialPort?.Close();
 			IsConnected = false;
 		}
 
@@ -86,7 +96,8 @@ namespace Modbus
 		protected override void Send()
 		{
 			_serialPort.Write(_sendBuffer.ToArray(), 0, _sendBuffer.Count);
-			// Reset timeout counter
+
+			// Reset timeout counter.
 			_charTimeout = 0;
 		}
 
@@ -118,6 +129,21 @@ namespace Modbus
 				_charTimeout = _timeoutStopwatch.ElapsedMilliseconds;   // Char received with no errors...reset timeout counter for next char!
 
 			return value;
+		}
+
+		/// <summary>
+		/// Clean up the objects
+		/// </summary>
+		public void Dispose()
+		{
+			// Close the serial port.
+			_serialPort?.Close();
+
+			// Remember that we've closed the port.
+			IsConnected = false;
+
+			// Dispose of the serial port object.
+			_serialPort?.Dispose();
 		}
 	}
 }
