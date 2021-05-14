@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 
 namespace Modbus
 {
@@ -21,22 +23,22 @@ namespace Modbus
 		/// <summary>
 		/// Dicrete Input registers (read-only - 1 bit)
 		/// </summary>
-		public bool[] DiscreteInputs { get; set; }
+		public List<bool> DiscreteInputs { get; }
 
 		/// <summary>
 		/// Coils registers (read/write - 1 bit)
 		/// </summary>
-		public bool[] Coils { get; set; }
+		public List<bool> Coils { get; }
 
 		/// <summary>
 		/// Input registers (read-only - 16 bit)
 		/// </summary>
-		public ushort[] InputRegisters { get; set; }
+		public List<ushort> InputRegisters { get; }
 
 		/// <summary>
 		/// Holding registers (read/write - 16 bit)
 		/// </summary>
-		public ushort[] HoldingRegisters { get; set; }
+		public List<ushort> HoldingRegisters { get; }
 
 		/// <summary>
 		/// Device ID
@@ -65,13 +67,13 @@ namespace Modbus
 				(numInputRegisters >= 0) && (numInputRegisters <= MAX_ELEMENTS) &&
 				(numHoldingRegisters >= 0) && (numHoldingRegisters <= MAX_ELEMENTS))
 			{
-				DiscreteInputs = new bool[numDiscreteInputs];
-				Coils = new bool[numCoils];
-				InputRegisters = new ushort[numInputRegisters];
-				HoldingRegisters = new ushort[numHoldingRegisters];
+				DiscreteInputs = new List<bool>(numDiscreteInputs);
+				Coils = new List<bool>(numCoils);
+				InputRegisters = new List<ushort>(numInputRegisters);
+				HoldingRegisters = new List<ushort>(numHoldingRegisters);
 			}
 			else
-				throw new Exception("Each set of records must be between 0 and " + MAX_ELEMENTS.ToString() + "!");
+				throw new Exception("Each set of records must be between 0 and " + MAX_ELEMENTS.ToString(CultureInfo.CurrentCulture) + "!");
 		}
 
 		/// <summary>
@@ -84,10 +86,10 @@ namespace Modbus
 			// Set device ID
 			UnitID = deviceId;
 			// Set DB length
-			DiscreteInputs = new bool[MAX_ELEMENTS];
-			Coils = new bool[MAX_ELEMENTS];
-			InputRegisters = new ushort[MAX_ELEMENTS];
-			HoldingRegisters = new ushort[MAX_ELEMENTS];
+			DiscreteInputs = new List<bool>(MAX_ELEMENTS);
+			Coils = new List<bool>(MAX_ELEMENTS);
+			InputRegisters = new List<ushort>(MAX_ELEMENTS);
+			HoldingRegisters = new List<ushort>(MAX_ELEMENTS);
 		}
 
 		#endregion
