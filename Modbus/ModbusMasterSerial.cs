@@ -40,11 +40,11 @@ namespace Modbus
 			switch (type)
 			{
 				case ModbusSerialType.RTU:
-					_connectionType = ConnectionType.SERIAL_RTU;
+					_connectionType = ConnectionType.SerialRTU;
 					break;
 
 				case ModbusSerialType.ASCII:
-					_connectionType = ConnectionType.SERIAL_ASCII;
+					_connectionType = ConnectionType.SerialASCII;
 					break;
 			}
 
