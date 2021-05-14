@@ -1,11 +1,12 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Net.Sockets;
 
 namespace Modbus
 {
 	/// <summary>
 	/// Modbus Master TCP Class
 	/// </summary>
-	public class ModbusMasterTCP : ModbusMaster
+	public class ModbusMasterTCP : ModbusMaster, IDisposable
 	{
 		#region Fields
 
@@ -41,7 +42,7 @@ namespace Modbus
 		public ModbusMasterTCP(string remoteHost, int port)
 		{
 			// Set device states
-			_connectionType = ConnectionType.TCP_IP;
+			_connectionType = ConnectionType.TCPIP;
 			// Set socket client
 			_remoteHost = remoteHost;
 			_port = port;
@@ -93,6 +94,34 @@ namespace Modbus
 				return _networkStream.ReadByte();
 			else
 				return -1;
+		}
+
+		/// <summary>
+		/// Dispose of managed resources.
+		/// </summary>
+		/// <remarks>
+		/// See https://docs.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose
+		/// </remarks>
+		/// <param name="disposing"></param>
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				_networkStream.Dispose();
+				_tcpClient.Dispose();
+			}
+		}
+
+		/// <summary>
+		/// Dispose of managed resources.
+		/// </summary>
+		/// <remarks>
+		/// See https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1001
+		/// </remarks>
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 	}
 }

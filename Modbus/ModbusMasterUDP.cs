@@ -11,7 +11,7 @@ namespace Modbus
 	/// <summary>
 	/// Modbus master UDP class
 	/// </summary>
-	public class ModbusMasterUDP : ModbusMaster
+	public class ModbusMasterUDP : ModbusMaster, IDisposable
 	{
 		#region Fields
 
@@ -47,7 +47,7 @@ namespace Modbus
 		public ModbusMasterUDP(string remote_host, int port)
 		{
 			// Set device states
-			_connectionType = ConnectionType.UDP_IP;
+			_connectionType = ConnectionType.UDPIP;
 			// Set socket client
 			_remoteHost = remote_host;
 			_port = port;
@@ -107,6 +107,34 @@ namespace Modbus
 			}
 			else
 				return -1;
+		}
+
+		/// <summary>
+		/// Dispose of managed resources.
+		/// </summary>
+		/// <remarks>
+		/// See https://docs.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose
+		/// </remarks>
+		/// <param name="disposing"></param>
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				// Dispose managed resources.
+				_udpClient.Dispose();
+			}
+		}
+
+		/// <summary>
+		/// Dispose of managed resources.
+		/// </summary>
+		/// <remarks>
+		/// See https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1001
+		/// </remarks>
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 	}
 }
