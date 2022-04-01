@@ -48,7 +48,7 @@ namespace Modbus
 		public ModbusMaster()
 		{
 			// Set device type.
-			_deviceType = DeviceType.MASTER;
+			_deviceType = DeviceType.Master;
 
 			// Initialize interchar timeout timer.
 			_timeoutStopwatch = new Stopwatch();
@@ -94,13 +94,10 @@ namespace Modbus
 		/// <param name="messageLength">Message lenght</param>
 		protected void Query(byte deviceAddress, ushort messageLength)
 		{
-			int rcv;
-			long tmo;
-
 			// Build the message according to the selected protocol.
 			switch (_connectionType)
 			{
-				case ConnectionType.SERIAL_ASCII:
+				case ConnectionType.SerialASCII:
 					// Insert device address in front of the message.
 					_sendBuffer.Insert(0, deviceAddress);
 
@@ -114,14 +111,14 @@ namespace Modbus
 					_sendBuffer.AddRange(lrc);
 
 					// Insert the start frame chararacter at the start of the message.
-					_sendBuffer.Insert(0, Encoding.ASCII.GetBytes(new char[] { ASCII_START_FRAME }).First());
+					_sendBuffer.Insert(0, Encoding.ASCII.GetBytes(new char[] { AsciiStartFrame }).First());
 
 					// Insert stop frame characters at the end of the message.
-					char[] endFrame = new char[] { ASCII_STOP_FRAME_1ST, ASCII_STOP_FRAME_2ND };
+					char[] endFrame = new char[] { AsciiStopFrame1ST, AsciiStopFrame2ND };
 					_sendBuffer.AddRange(Encoding.ASCII.GetBytes(endFrame));
 					break;
 
-				case ConnectionType.SERIAL_RTU:
+				case ConnectionType.SerialRTU:
 					// Insert device address in front of the message.
 					_sendBuffer.Insert(0, deviceAddress);
 
@@ -133,13 +130,13 @@ namespace Modbus
 					break;
 
 				// For Modbus TCP/UDP, build MBAP header.
-				case ConnectionType.UDP_IP:
-				case ConnectionType.TCP_IP:
+				case ConnectionType.UDPIP:
+				case ConnectionType.TCPIP:
 					// Transaction ID (incremented by 1 on each trasmission)
 					_sendBuffer.InsertRange(0, GetBytes(_transactionID));
 
 					// Protocol ID (fixed value)
-					_sendBuffer.InsertRange(2, GetBytes(PROTOCOL_ID));
+					_sendBuffer.InsertRange(2, GetBytes(ProtocolID));
 
 					// Message length
 					_sendBuffer.InsertRange(4, GetBytes(messageLength));
@@ -156,7 +153,8 @@ namespace Modbus
 			_receiveBuffer.Clear();
 
 			bool done = false;
-			bool in_ric = false;
+			bool firstByteReceived = false;
+			long elapsedTime;
 
 			// Start a timeout stopwatch.
 			Stopwatch sw = new Stopwatch();
@@ -164,23 +162,23 @@ namespace Modbus
 			do
 			{
 				// Try to read a byte.
-				rcv = ReceiveByte();
+				int rcv = ReceiveByte();
 
 				// If a byte was received...
 				if (rcv > -1)
 				{
 					// If it is the first byte...
-					if (in_ric == false)
+					if (firstByteReceived == false)
 					{
 						// Remember that at least one byte has been received.
-						in_ric = true;
+						firstByteReceived = true;
 					}
 
 					// If we're using MODBUS ASCII...
-					if (_connectionType == ConnectionType.SERIAL_ASCII)
+					if (_connectionType == ConnectionType.SerialASCII)
 					{
 						// If the byte we received was a colon (the first byte of an ASCII message)...
-						if ((byte)rcv == Encoding.ASCII.GetBytes(new char[] { ASCII_START_FRAME }).First())
+						if ((byte)rcv == Encoding.ASCII.GetBytes(new char[] { AsciiStartFrame }).First())
 						{
 							// Clear the receive message buffer of any previous partial message.
 							_receiveBuffer.Clear();
@@ -191,7 +189,7 @@ namespace Modbus
 					_receiveBuffer.Add((byte)rcv);
 				}
 				// If we've stopped receiving bytes...
-				else if ((rcv == -1) && in_ric)
+				else if ((rcv == -1) && firstByteReceived)
 				{
 					// Consider the message finished.
 					done = true;
@@ -199,15 +197,15 @@ namespace Modbus
 
 				// Fetch how many milliseconds have elapsed.
 				// Keep receiving until we stop receiving bytes.
-				tmo = sw.ElapsedMilliseconds;
-			} while ((!done) && (RxTimeout > tmo));
+				elapsedTime = sw.ElapsedMilliseconds;
+			} while ((!done) && (RxTimeout > elapsedTime));
 
 			// Stop the stopwatch.
 			_timeoutStopwatch.Stop();
 			sw.Stop();
 
 			// If the response timed out...
-			if (tmo >= RxTimeout)
+			if (elapsedTime >= RxTimeout)
 			{
 				throw new ModbusTimeoutException("Timeout waiting for response.");
 			}
@@ -219,16 +217,16 @@ namespace Modbus
 				switch (_connectionType)
 				{
 					default:
-					case ConnectionType.SERIAL_RTU:
+					case ConnectionType.SerialRTU:
 						minFrameLength = 5;
 						break;
 
-					case ConnectionType.SERIAL_ASCII:
+					case ConnectionType.SerialASCII:
 						minFrameLength = 11;
 						break;
 
-					case ConnectionType.UDP_IP:
-					case ConnectionType.TCP_IP:
+					case ConnectionType.UDPIP:
+					case ConnectionType.TCPIP:
 						minFrameLength = 9;
 						break;
 				}
@@ -242,7 +240,7 @@ namespace Modbus
 				switch (_connectionType)
 				{
 					// If we're using MODBUS ASCII...
-					case ConnectionType.SERIAL_ASCII:
+					case ConnectionType.SerialASCII:
 						// If we didn't get the correct start character...
 						if (_receiveBuffer[0] != _sendBuffer[0])
 						{
@@ -253,7 +251,7 @@ namespace Modbus
 						_receiveBuffer.RemoveRange(0, 1);
 
 						// If we didn't get the correct stop characters...
-						char[] endFrameSent = new char[] { ASCII_STOP_FRAME_1ST, ASCII_STOP_FRAME_2ND };
+						char[] endFrameSent = new char[] { AsciiStopFrame1ST, AsciiStopFrame2ND };
 						char[] endFrameReceived = Encoding.ASCII.GetChars(_receiveBuffer.GetRange(_receiveBuffer.Count - 2, 2).ToArray());
 						if (!endFrameSent.SequenceEqual(endFrameReceived))
 						{
@@ -282,12 +280,14 @@ namespace Modbus
 						break;
 
 					// If we're using MODBUS RTU...
-					case ConnectionType.SERIAL_RTU:
+					case ConnectionType.SerialRTU:
 						// If the 16-bit CRC is incorrect...
 						ushort crcCalculated = CRC16.CalcCRC16(_receiveBuffer.ToArray(), 0, _receiveBuffer.Count - 2);
 						ushort crcReceived = BitConverter.ToUInt16(_receiveBuffer.ToArray(), _receiveBuffer.Count - 2);
 						if (crcReceived != crcCalculated)
 						{
+							// TODO:  Read until there's nothing left in the queue.
+
 							throw new ModbusResponseException("Wrong CRC.");
 						}
 
@@ -306,8 +306,8 @@ namespace Modbus
 						break;
 
 					// If we're using MODBUS IP...
-					case ConnectionType.UDP_IP:
-					case ConnectionType.TCP_IP:
+					case ConnectionType.UDPIP:
+					case ConnectionType.TCPIP:
 						// If the MBAP header is incorrect...
 						ushort tid = ToUInt16(_receiveBuffer.ToArray(), 0);
 						if (tid != _transactionID)
@@ -317,14 +317,14 @@ namespace Modbus
 
 						// If the protocol ID is incorect...
 						ushort pid = ToUInt16(_receiveBuffer.ToArray(), 2);
-						if (pid != PROTOCOL_ID)
+						if (pid != ProtocolID)
 						{
 							throw new ModbusResponseException("Wrong transaction ID.");
 						}
 
 						// If the length is incorrect...
 						ushort len = ToUInt16(_receiveBuffer.ToArray(), 4);
-						if ((_receiveBuffer.Count - MBAP_HEADER_LEN + 1) < len)
+						if ((_receiveBuffer.Count - MbapHeaderLength + 1) < len)
 						{
 							throw new ModbusResponseException("Wrong message length.");
 						}
@@ -337,7 +337,7 @@ namespace Modbus
 						}
 
 						// Remove the header from the message.
-						_receiveBuffer.RemoveRange(0, MBAP_HEADER_LEN);
+						_receiveBuffer.RemoveRange(0, MbapHeaderLength);
 						break;
 				}
 
@@ -381,7 +381,7 @@ namespace Modbus
 			{
 				throw new ModbusRequestException("Zero coils requested.");
 			}
-			if (numCoils > MAX_COILS_IN_READ_MSG)
+			if (numCoils > MaxCoilsInReadMessage)
 			{
 				throw new ModbusRequestException("Too many coils requested.");
 			}
@@ -394,7 +394,7 @@ namespace Modbus
 
 			// Form the request.
 			_sendBuffer.Clear();
-			_sendBuffer.Add((byte)ModbusCodes.READ_COILS);
+			_sendBuffer.Add((byte)ModbusCode.ReadCoils);
 			_sendBuffer.AddRange(GetBytes(startAddress));
 			_sendBuffer.AddRange(GetBytes(numCoils));
 
@@ -421,7 +421,7 @@ namespace Modbus
 			{
 				throw new ModbusRequestException("Zero discrete inputs requested.");
 			}
-			if (numInputs > MAX_DISCRETE_INPUTS_IN_READ_MSG)
+			if (numInputs > MaxDiscreteInputsInReadMessage)
 			{
 				throw new ModbusRequestException("Too many coils requested.");
 			}
@@ -434,7 +434,7 @@ namespace Modbus
 
 			// Form the request.
 			_sendBuffer.Clear();
-			_sendBuffer.Add((byte)ModbusCodes.READ_DISCRETE_INPUTS);
+			_sendBuffer.Add((byte)ModbusCode.ReadDiscreteInputs);
 			_sendBuffer.AddRange(GetBytes(startAddress));
 			_sendBuffer.AddRange(GetBytes(numInputs));
 
@@ -461,7 +461,7 @@ namespace Modbus
 			{
 				throw new ModbusRequestException("Zero registers requested.");
 			}
-			if (numRegisters > MAX_HOLDING_REGISTERS_IN_READ_MSG)
+			if (numRegisters > MaxHoldingRegistersInReadMessage)
 			{
 				throw new ModbusRequestException("Too many registers requested.");
 			}
@@ -474,7 +474,7 @@ namespace Modbus
 
 			// Form the request.
 			_sendBuffer.Clear();
-			_sendBuffer.Add((byte)ModbusCodes.READ_HOLDING_REGISTERS);
+			_sendBuffer.Add((byte)ModbusCode.ReadHoldingRegisters);
 			_sendBuffer.AddRange(GetBytes(startAddress));
 			_sendBuffer.AddRange(GetBytes(numRegisters));
 			
@@ -504,7 +504,7 @@ namespace Modbus
 			{
 				throw new ModbusRequestException("Zero registers requested.");
 			}
-			if (numRegisters > MAX_INPUT_REGISTERS_IN_READ_MSG)
+			if (numRegisters > MaxInputRegistersInReadMessage)
 			{
 				throw new ModbusRequestException("Too many registers requested.");
 			}
@@ -517,7 +517,7 @@ namespace Modbus
 
 			// Form the request.
 			_sendBuffer.Clear();
-			_sendBuffer.Add((byte)ModbusCodes.READ_INPUT_REGISTERS);
+			_sendBuffer.Add((byte)ModbusCode.ReadInputRegisters);
 			_sendBuffer.AddRange(GetBytes(startAddress));
 			_sendBuffer.AddRange(GetBytes(numRegisters));
 
@@ -546,7 +546,7 @@ namespace Modbus
 			_transactionID++;
 
 			// Form the request.
-			_sendBuffer.Clear(); _sendBuffer.Add((byte)ModbusCodes.WRITE_SINGLE_COIL);
+			_sendBuffer.Clear(); _sendBuffer.Add((byte)ModbusCode.WriteSingleCoil);
 			_sendBuffer.AddRange(GetBytes(coilAddress));
 			_sendBuffer.AddRange(GetBytes((ushort)(value == true ? 0xFF00 : 0x0000)));
 
@@ -584,7 +584,7 @@ namespace Modbus
 
 			// Form the request.
 			_sendBuffer.Clear();
-			_sendBuffer.Add((byte)ModbusCodes.WRITE_SINGLE_REGISTER);
+			_sendBuffer.Add((byte)ModbusCode.WriteSingleRegister);
 			_sendBuffer.AddRange(GetBytes(registerAddress));
 			_sendBuffer.AddRange(GetBytes(value));
 
@@ -615,7 +615,7 @@ namespace Modbus
 			{
 				throw new ModbusRequestException("Zero registers requested.");
 			}
-			if (values.Length > MAX_COILS_IN_WRITE_MSG)
+			if (values.Length > MaxCoilsInWriteMessage)
 			{
 				throw new ModbusRequestException("Too many registers requested.");
 			}
@@ -634,7 +634,7 @@ namespace Modbus
 
 			// Form the request.
 			_sendBuffer.Clear();
-			_sendBuffer.Add((byte)ModbusCodes.WRITE_MULTIPLE_COILS);
+			_sendBuffer.Add((byte)ModbusCode.WriteMultipleCoils);
 			_sendBuffer.AddRange(GetBytes(startAddress));
 			_sendBuffer.AddRange(GetBytes((ushort)values.Length));
 			_sendBuffer.Add(byteCount);
@@ -674,7 +674,7 @@ namespace Modbus
 			{
 				throw new ModbusRequestException("Zero registers requested.");
 			}
-			if (values.Length > MAX_HOLDING_REGISTERS_IN_WRITE_MSG)
+			if (values.Length > MaxHoldingRegistersInWriteMessage)
 			{
 				throw new ModbusRequestException("Too many registers requested.");
 			}
@@ -687,7 +687,7 @@ namespace Modbus
 
 			// Form the request.
 			_sendBuffer.Clear();
-			_sendBuffer.Add((byte)ModbusCodes.WRITE_MULTIPLE_REGISTERS);
+			_sendBuffer.Add((byte)ModbusCode.WriteMultipleRegisters);
 			_sendBuffer.AddRange(GetBytes(startAddress));
 			_sendBuffer.AddRange(GetBytes((ushort)values.Length));
 			_sendBuffer.Add((byte)(values.Length * 2));
@@ -731,7 +731,7 @@ namespace Modbus
 			_transactionID++;
 
 			// Form the request.
-			_sendBuffer.Clear(); _sendBuffer.Add((byte)ModbusCodes.MASK_WRITE_REGISTER);
+			_sendBuffer.Clear(); _sendBuffer.Add((byte)ModbusCode.MaskWriteRegister);
 			_sendBuffer.AddRange(GetBytes(registerAddress));
 			_sendBuffer.AddRange(GetBytes(andMask));
 			_sendBuffer.AddRange(GetBytes(orMask));
@@ -782,8 +782,8 @@ namespace Modbus
 			{
 				throw new ModbusRequestException("Zero registers requested.");
 			}
-			if ((readNumRegisters > MAX_HOLDING_REGISTERS_TO_READ_IN_READWRITE_MSG) ||
-				(values.Length > MAX_HOLDING_REGISTERS_TO_WRITE_IN_READWRITE_MSG))
+			if ((readNumRegisters > MaxHoldingRegistersToReadInReadWriteMessage) ||
+				(values.Length > MaxHoldingRegistersToWriteInReadWriteMessage))
 			{
 				throw new ModbusRequestException("Too many registers requested.");
 			}
@@ -795,7 +795,7 @@ namespace Modbus
 			_transactionID++;
 
 			// Form the request.
-			_sendBuffer.Clear(); _sendBuffer.Add((byte)ModbusCodes.READ_WRITE_MULTIPLE_REGISTERS);
+			_sendBuffer.Clear(); _sendBuffer.Add((byte)ModbusCode.ReadWriteMultipleRegisters);
 			_sendBuffer.AddRange(GetBytes(readStartAddress));
 			_sendBuffer.AddRange(GetBytes(readNumRegisters));
 			_sendBuffer.AddRange(GetBytes(writeStartAddress));

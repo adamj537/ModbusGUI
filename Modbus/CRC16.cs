@@ -13,23 +13,26 @@
 		/// <summary>
 		/// CRC table
 		/// </summary>
-		private static ushort[] crc_tab16;
+		private static ushort[] _crcTable;
 
 		/// <summary>
 		/// Initialize CRC table
 		/// </summary>
-		private static void InitCRC16Tab()
+		private static void InitCRC16Table()
 		{
-			ushort crc, c;
-
-			if (crc_tab16 == null)
+			// If the CRC table hasn't been populated...
+			if (_crcTable == null)
 			{
-				crc_tab16 = new ushort[256];
-				for (int ii = 0; ii < 256; ii++)
+				// Create a new array.
+				_crcTable = new ushort[256];
+
+				// For each element in the array...
+				for (int i = 0; i < 256; i++)
 				{
-					crc = 0;
-					c = (ushort)ii;
-					for (int jj = 0; jj < 8; jj++)
+					ushort crc = 0;
+					ushort c = (ushort)i;
+
+					for (int j = 0; j < 8; j++)
 					{
 
 						if (((crc ^ c) & 0x0001) == 0x0001)
@@ -40,7 +43,7 @@
 						c = (ushort)(c >> 1);
 					}
 
-					crc_tab16[ii] = crc;
+					_crcTable[i] = crc;
 				}
 			}
 		}
@@ -49,18 +52,19 @@
 		/// Update CRC value
 		/// </summary>
 		/// <param name="crc">Actual CRC value</param>
-		/// <param name="bt">Data byte</param>
+		/// <param name="data">Data byte</param>
 		/// <returns>Computed CRC</returns>
-		private static ushort UpdateCRC16(ushort crc, byte bt)
+		private static ushort UpdateCRC16(ushort crc, byte data)
 		{
-			ushort tmp, ushort_bt;
+			ushort tmp;
+			ushort shortData;
 
-			ushort_bt = (ushort)(0x00FF & bt);
+			shortData = (ushort)(0x00FF & data);
 
-			InitCRC16Tab();
+			InitCRC16Table();
 
-			tmp = (ushort)(crc ^ ushort_bt);
-			crc = (ushort)((crc >> 8) ^ crc_tab16[tmp & 0xff]);
+			tmp = (ushort)(crc ^ shortData);
+			crc = (ushort)((crc >> 8) ^ _crcTable[tmp & 0xff]);
 
 			return crc;
 		}

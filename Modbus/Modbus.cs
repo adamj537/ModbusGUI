@@ -24,22 +24,22 @@ namespace Modbus
 		/// <summary>
 		/// Modbus serial RTU
 		/// </summary>
-		SERIAL_RTU = 0,
+		SerialRTU = 0,
 
 		/// <summary>
 		/// Modbus serial ASCII
 		/// </summary>
-		SERIAL_ASCII = 1,
+		SerialASCII = 1,
 
 		/// <summary>
 		/// Modbus TCP/IP
 		/// </summary>
-		TCP_IP = 2,
+		TCPIP = 2,
 
 		/// <summary>
 		/// Modbus UDP
 		/// </summary>
-		UDP_IP = 3
+		UDPIP = 3
 	}
 
 	/// <summary>
@@ -66,86 +66,86 @@ namespace Modbus
 		/// <summary>
 		/// Modbus master
 		/// </summary>
-		MASTER = 0,
+		Master = 0,
 
 		/// <summary>
 		/// Modbus slave
 		/// </summary>
-		SLAVE = 1
+		Slave = 1
 	}
 
 	/// <summary>
 	/// Tabelle del database modbus
 	/// </summary>
-	public enum ModbusDBTables
+	public enum ModbusDBTable
 	{
-		DISCRETE_INPUTS_REGISTERS = 0,
-		COIL_REGISTERS = 1,
-		INPUT_REGISTERS = 2,
-		HOLDING_REGISTERS = 3
+		DiscreteInputsRegisters = 0,
+		CoilRegisters = 1,
+		InputRegisters = 2,
+		HoldingRegisters = 3
 	}
 
 	/// <summary>
 	/// Modbus calling codes
 	/// </summary>
-	enum ModbusCodes
+	internal enum ModbusCode
 	{
-		READ_COILS = 0x01,
-		READ_DISCRETE_INPUTS = 0x02,
-		READ_HOLDING_REGISTERS = 0x03,
-		READ_INPUT_REGISTERS = 0x04,
-		WRITE_SINGLE_COIL = 0x05,
-		WRITE_SINGLE_REGISTER = 0x06,
-		READ_EXCEPTION_STATUS = 0x07,
-		DIAGNOSTIC = 0x08,
-		GET_COM_EVENT_COUNTER = 0x0B,
-		GET_COM_EVENT_LOG = 0x0C,
-		WRITE_MULTIPLE_COILS = 0x0F,
-		WRITE_MULTIPLE_REGISTERS = 0x10,
-		REPORT_SLAVE_ID = 0x11,
-		READ_FILE_RECORD = 0x14,
-		WRITE_FILE_RECORD = 0x15,
-		MASK_WRITE_REGISTER = 0x16,
-		READ_WRITE_MULTIPLE_REGISTERS = 0x17,
-		READ_FIFO_QUEUE = 0x18,
-		READ_DEVICE_IDENTIFICATION = 0x2B
+		ReadCoils = 0x01,
+		ReadDiscreteInputs = 0x02,
+		ReadHoldingRegisters = 0x03,
+		ReadInputRegisters = 0x04,
+		WriteSingleCoil = 0x05,
+		WriteSingleRegister = 0x06,
+		ReadExceptionStatus = 0x07,
+		Diagnostic = 0x08,
+		GetComEventCounter = 0x0B,
+		GetComEventLog = 0x0C,
+		WriteMultipleCoils = 0x0F,
+		WriteMultipleRegisters = 0x10,
+		ReportSlaveID = 0x11,
+		ReadFileRecord = 0x14,
+		WriteFileRecord = 0x15,
+		MaskWriteRegister = 0x16,
+		ReadWriteMultipleRegisters = 0x17,
+		ReadFifoQueue = 0x18,
+		ReadDeviceIdentification = 0x2B
 	}
 
 	/// <summary>
 	/// Error codes
 	/// </summary>
-	public enum Errors
+	public enum ModbusError
 	{
-		NO_ERROR = 0,
-		RX_TIMEOUT = -1,
-		WRONG_TRANSACTION_ID = -2,
-		WRONG_PROTOCOL_ID = -3,
-		WRONG_RESPONSE_UNIT_ID = -4,
-		WRONG_RESPONSE_FUNCTION_CODE = -5,
-		WRONG_MESSAGE_LEN = -6,
-		WRONG_RESPONSE_ADDRESS = -7,
-		WRONG_RESPONSE_REGISTERS = -8,
-		WRONG_RESPONSE_VALUE = -9,
-		WRONG_CRC = -10,
-		WRONG_LRC = -11,
-		START_CHAR_NOT_FOUND = -12,
-		END_CHARS_NOT_FOUND = -13,
-		WRONG_RESPONSE_AND_MASK = -14,
-		WRONG_RESPONSE_OR_MASK = -15,
-		THREAD_BLOCK_REQUEST = -16,
-		WRONG_WRITE_SINGLE_COIL_VALUE = -17,
-		TOO_MANY_REGISTERS_REQUESTED = -18,
-		ZERO_REGISTERS_REQUESTED = -19,
-		EXCEPTION_ILLEGAL_FUNCTION = -20,
-		EXCEPTION_ILLEGAL_DATA_ADDRESS = -21,
-		EXCEPTION_ILLEGAL_DATA_VALUE = -22,
-		EXCEPTION_SLAVE_DEVICE_FAILURE = -23,
-		EXCEPTION_ACKNOLEDGE = -24,
-		EXCEPTION_SLAVE_DEVICE_BUSY = -25,
-		EXCEPTION_MEMORY_PARITY_ERROR = -26,
-		EXCEPTION_GATEWAY_PATH_UNAVAILABLE = -27,
-		EXCEPTION_GATEWAY_TARGET_DEVICE_FAILED_TO_RESPOND = -28,
-		WRONG_REGISTER_ADDRESS = -29
+		NoError = 0,
+		RxTimeout = -1,
+		WrongTransactionID = -2,
+		WrongProtocolID = -3,
+		WrongResponseUnitID = -4,
+		WrongResponseFunctionCode = -5,
+		WrongMessageLength = -6,
+		WrongResponseAddress = -7,
+		WrongResponseRegisters = -8,
+		WrongResponseValue = -9,
+		WrongCRC = -10,
+		WrongLRC = -11,
+		StartCharNotFound = -12,
+		EndCharsNotFound = -13,
+		WrongResponseAndMask = -14,
+		WrongResponseOrMask = -15,
+		ThreadBlockRequest = -16,
+		WrongWriteSingleCoilValue = -17,
+		TooManyRegistersRequested = -18,
+		ZeroRegistersRequested = -19,
+		ExceptionIllegalFunction = -20,
+		ExceptionIllegalDataAddress = -21,
+		ExceptionIllegalDataValue = -22,
+		ExceptionSlaveDeviceFailure = -23,
+		ExceptionAcknoledge = -24,
+		ExceptionSlaveDeviceBusy = -25,
+		ExceptionMemoryParityError = -26,
+		ExceptionGatewayPathUnavailable = -27,
+		ExceptionGatewayTargetDeviceFailedToRespond = -28,
+		WrongRegisterAddress = -29
 	}
 
 	#endregion
@@ -160,72 +160,72 @@ namespace Modbus
 		/// <summary>
 		/// Modbus protocol identifier (only TCP and UDP)
 		/// </summary>
-		protected const ushort PROTOCOL_ID = 0x0000;
+		protected const ushort ProtocolID = 0x0000;
 
 		/// <summary>
 		/// Default rx timeout in milliseconds
 		/// </summary>
-		const int DEFAULT_RX_TIMEOUT = 6000;
+		const int DefaultRxTimeout = 6000;
 
 		/// <summary>
 		/// Length in bytes of MBAP header        
 		/// </summary>
-		protected const int MBAP_HEADER_LEN = 7;
+		protected const int MbapHeaderLength = 7;
 
 		/// <summary>
 		/// Start frame character (only Modbus serial ASCII)
 		/// </summary>
-		protected const char ASCII_START_FRAME = ':';
+		protected const char AsciiStartFrame = ':';
 
 		/// <summary>
 		/// End frame first character (only Modbus serial ASCII)
 		/// </summary>
-		protected const char ASCII_STOP_FRAME_1ST = '\x0D';
+		protected const char AsciiStopFrame1ST = '\x0D';
 
 		/// <summary>
 		/// End frame second character (only Modbus serial ASCII)
 		/// </summary>
-		protected const char ASCII_STOP_FRAME_2ND = '\x0A';
+		protected const char AsciiStopFrame2ND = '\x0A';
 
 		/// <summary>
 		/// Max number of coil registers that can be read
 		/// </summary>
-		public const ushort MAX_COILS_IN_READ_MSG = 2000;
+		public const ushort MaxCoilsInReadMessage = 2000;
 
 		/// <summary>
 		/// Max number of discrete inputs registers that can be read
 		/// </summary>
-		public const ushort MAX_DISCRETE_INPUTS_IN_READ_MSG = 2000;
+		public const ushort MaxDiscreteInputsInReadMessage = 2000;
 
 		/// <summary>
 		/// Max number of holding registers that can be read
 		/// </summary>
-		public const ushort MAX_HOLDING_REGISTERS_IN_READ_MSG = 125;
+		public const ushort MaxHoldingRegistersInReadMessage = 125;
 
 		/// <summary>
 		/// Max number of input registers that can be read
 		/// </summary>
-		public const ushort MAX_INPUT_REGISTERS_IN_READ_MSG = 125;
+		public const ushort MaxInputRegistersInReadMessage = 125;
 
 		/// <summary>
 		/// Max number of coil registers that can be written
 		/// </summary>
-		public const ushort MAX_COILS_IN_WRITE_MSG = 1968;
+		public const ushort MaxCoilsInWriteMessage = 1968;
 
 		/// <summary>
 		/// Max number of holding registers that can be written
 		/// </summary>
-		public const ushort MAX_HOLDING_REGISTERS_IN_WRITE_MSG = 123;
+		public const ushort MaxHoldingRegistersInWriteMessage = 123;
 
 		/// <summary>
 		/// Max number of holding registers that can be read in a read/write message
 		/// </summary>
-		public const ushort MAX_HOLDING_REGISTERS_TO_READ_IN_READWRITE_MSG = 125;
+		public const ushort MaxHoldingRegistersToReadInReadWriteMessage = 125;
 
 		/// <summary>
 		/// Max number of holding registers that can be written in a read/write message
 		/// </summary>
-		public const ushort MAX_HOLDING_REGISTERS_TO_WRITE_IN_READWRITE_MSG = 121;
+		public const ushort MaxHoldingRegistersToWriteInReadWriteMessage = 121;
 
 		#endregion
 
@@ -258,7 +258,7 @@ namespace Modbus
 		/// <summary>
 		/// Reception timeout (milliseconds)
 		/// </summary>
-		public int RxTimeout { get; set; } = DEFAULT_RX_TIMEOUT;
+		public int RxTimeout { get; set; } = DefaultRxTimeout;
 
 		#endregion
 
@@ -269,7 +269,7 @@ namespace Modbus
 		/// </summary>
 		/// <param name="value">Value to convert</param>
 		/// <returns>Bytes array</returns>
-		protected byte[] GetBytes(ushort value)
+		protected static byte[] GetBytes(ushort value)
 		{
 			byte[] array = new byte[2];
 
@@ -289,8 +289,14 @@ namespace Modbus
 		/// Codified in two chars   : 0x35 = '5' and 0x42 = 'B' in ASCII
 		/// The returned vector is exactly the double of the introduced one.
 		/// </remarks>
-		protected byte[] GetASCIIBytesFromBinaryBuffer(byte[] buffer)
+		protected static byte[] GetASCIIBytesFromBinaryBuffer(byte[] buffer)
 		{
+			// Check for null parameter.
+			if (buffer == null)
+			{
+				throw new ArgumentNullException(nameof(buffer));
+			}
+
 			List<char> chars = new List<char>();
 			for (int i = 0, j = 0; i < buffer.Length * 2; i++)
 			{
@@ -336,8 +342,14 @@ namespace Modbus
 		/// Byte decodified         : Byte = 0x5B
 		/// The returned vector is exactly the half of the introduced one
 		/// </remarks>
-		protected byte[] GetBinaryBufferFromASCIIBytes(byte[] buffer)
+		protected static byte[] GetBinaryBufferFromASCIIBytes(byte[] buffer)
 		{
+			// Check for null parameter.
+			if (buffer == null)
+			{
+				throw new ArgumentNullException(nameof(buffer));
+			}
+
 			List<byte> ret = new List<byte>();
 			char[] chars = Encoding.ASCII.GetChars(buffer);
 			byte bt = 0;
@@ -382,8 +394,14 @@ namespace Modbus
 		/// <param name="value">Source byte array</param>
 		/// <param name="offset">Buffer offset</param>
 		/// <returns>Integer returned</returns>
-		protected ushort ToUInt16(byte[] value, int offset)
+		protected static ushort ToUInt16(byte[] value, int offset)
 		{
+			// Check for null parameter.
+			if (value == null)
+			{
+				throw new ArgumentNullException(nameof(value));
+			}
+
 			return (ushort)((value[offset] << 8) | (value[offset + 1] & 0x00FF));
 		}
 
@@ -393,8 +411,14 @@ namespace Modbus
 		/// <param name="array">Array booleano di 8 bit</param>
 		/// <param name="offset">Array offset</param>
 		/// <returns>Byte returned</returns>
-		protected byte EightBitToByte(bool[] array, int offset)
+		protected static byte EightBitToByte(bool[] array, int offset)
 		{
+			// Check for null parameter.
+			if (array == null)
+			{
+				throw new ArgumentNullException(nameof(array));
+			}
+
 			if (array.Length < 8)
 				throw new Exception(MethodBase.GetCurrentMethod().Name + ": The array must be at least 8-bit length!");
 			byte ret = 0x00;
@@ -423,8 +447,14 @@ namespace Modbus
 		/// </summary>
 		/// <param name="serialPort">Serial Port</param>
 		/// <returns>Calculated delay (milliseconds)</returns>
-		protected int GetInterframeDelay(SerialPort serialPort)
+		protected static int GetInterframeDelay(SerialPort serialPort)
 		{
+			// Check for null parameter.
+			if (serialPort == null)
+			{
+				throw new ArgumentNullException(nameof(serialPort));
+			}
+
 			int delay;
 
 			if (serialPort.BaudRate > 19200)
@@ -455,8 +485,14 @@ namespace Modbus
 		/// </summary>
 		/// <param name="serialPort">Serial Port</param>
 		/// <returns>Calculated delay (milliseconds)</returns>
-		protected int GetIntercharDelay(SerialPort serialPort)
+		protected static int GetIntercharDelay(SerialPort serialPort)
 		{
+			// Check for null parameter.
+			if (serialPort == null)
+			{
+				throw new ArgumentNullException(nameof(serialPort));
+			}
+
 			int delay;
 
 			if (serialPort.BaudRate > 19200)
