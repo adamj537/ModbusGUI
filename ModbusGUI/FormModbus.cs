@@ -129,7 +129,7 @@ namespace ModbusGUI
 						toolStripStatusLabel1.Text = "Opening serial port...";
 
 						// Fetch the selected serial port.
-						string portName = comboBoxSerialPort.SelectedItem.ToString();
+						string portName = comboBoxSerialPort.SelectedItem?.ToString();
 						if (string.IsNullOrEmpty(portName))
 						{
 							throw new ArgumentException("Serial Port not selected.");
