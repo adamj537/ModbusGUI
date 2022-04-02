@@ -74,7 +74,7 @@ namespace ModbusGUI
 
 			// Update application settings from the form.
 			Properties.Settings.Default.Port = comboBoxSerialPort.Text;
-			Properties.Settings.Default.BaudRate = Convert.ToUInt16(comboBoxBaudRate.Text);
+			Properties.Settings.Default.BaudRate = Convert.ToUInt32(comboBoxBaudRate.Text);
 			Properties.Settings.Default.StopBits = Convert.ToUInt16(comboBoxStopBits.Text);
 			Properties.Settings.Default.Parity = comboBoxParity.Text;
 			Properties.Settings.Default.Mode = comboBoxMode.Text;
