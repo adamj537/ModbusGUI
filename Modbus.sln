@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29503.13
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modbus", "Modbus\Modbus.csproj", "{B6468DD5-58C4-4950-B3F6-DAF30A384F55}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modbus", "Modbus\Modbus.csproj", "{B6468DD5-58C4-4950-B3F6-DAF30A384F55}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{86FB5D0A-F67F-4C3B-86D3-2CF2E5A97D38}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModbusGUI", "ModbusGUI\ModbusGUI.csproj", "{7DF05CCD-334F-4B3C-ACF9-4EE070F23D8A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModbusGUI", "ModbusGUI\ModbusGUI.csproj", "{7DF05CCD-334F-4B3C-ACF9-4EE070F23D8A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
